@@ -12,6 +12,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               height: 36,
@@ -31,55 +32,61 @@ class HomeScreen extends StatelessWidget {
               child: const Text('W', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
             ),
             const SizedBox(width: 10),
-            RichText(
-              text: const TextSpan(
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
-                children: [
-                  TextSpan(text: 'Wegenz '),
-                  TextSpan(text: 'Practice', style: TextStyle(color: Color(0xFF4F46E5))),
-                ],
+            Flexible(
+              child: RichText(
+                overflow: TextOverflow.ellipsis,
+                text: const TextSpan(
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                  children: [
+                    TextSpan(text: 'Wegenz '),
+                    TextSpan(text: 'Practice', style: TextStyle(color: Color(0xFF4F46E5))),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(width: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEEF2FF),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFC7D2FE)),
+            if (MediaQuery.sizeOf(context).width > 540) ...[
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEF2FF),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFC7D2FE)),
+                ),
+                child: const Text(
+                  '170,000+ PYQs',
+                  style: TextStyle(color: Color(0xFF4338CA), fontSize: 11, fontWeight: FontWeight.bold),
+                ),
               ),
-              child: const Text(
-                '170,000+ PYQs',
-                style: TextStyle(color: Color(0xFF4338CA), fontSize: 11, fontWeight: FontWeight.bold),
-              ),
-            ),
+            ],
           ],
         ),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFECFDF5),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFA7F3D0)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  height: 6,
-                  width: 6,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF10B981),
-                    shape: BoxShape.circle,
+          if (MediaQuery.sizeOf(context).width > 420)
+            Container(
+              margin: const EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFECFDF5),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFA7F3D0)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 6,
+                    width: 6,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF10B981),
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 6),
-                const Text('Offline Ready', style: TextStyle(color: Color(0xFF047857), fontSize: 11, fontWeight: FontWeight.w600)),
-              ],
+                  const SizedBox(width: 6),
+                  const Text('Offline Ready', style: TextStyle(color: Color(0xFF047857), fontSize: 11, fontWeight: FontWeight.w600)),
+                ],
+              ),
             ),
-          ),
         ],
       ),
       body: Center(
@@ -163,10 +170,10 @@ class HomeScreen extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'CHOOSE YOUR TRACK',
                     style: TextStyle(
-                      color: const Color(0xFF4F46E5),
+                      color: Color(0xFF4F46E5),
                       fontWeight: FontWeight.w800,
                       fontSize: 11,
                       letterSpacing: 1.2,

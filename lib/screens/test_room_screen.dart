@@ -56,6 +56,45 @@ class TestRoomScreen extends StatelessWidget {
     );
   }
 
+  void _confirmExit(BuildContext context, QuizProvider quiz) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Leave Practice Test?'),
+        content: const Text(
+          'Your active test progress and answers will be lost if you leave now. Would you like to keep practicing, submit your test, or exit to Home?',
+          style: TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Keep Practicing'),
+          ),
+          OutlinedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pop(context);
+            },
+            child: const Text('Exit to Home'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              quiz.finishTest();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ResultScreen(report: quiz.result!),
+                ),
+              );
+            },
+            child: const Text('Submit Test'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openPaletteSheet(BuildContext context, QuizProvider quiz) {
     showModalBottomSheet(
       context: context,
@@ -184,6 +223,23 @@ class TestRoomScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final quiz = context.watch<QuizProvider>();
+
+    if (quiz.isFinished && quiz.result != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResultScreen(report: quiz.result!),
+            ),
+          );
+        }
+      });
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final q = quiz.currentQuestion;
 
     String timerText = '';
@@ -199,298 +255,350 @@ class TestRoomScreen extends StatelessWidget {
       timerText = '$mins:$secs';
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Question ${quiz.currentIndex + 1} of ${quiz.totalQuestions}',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              q.chapterName.isNotEmpty ? q.chapterName : q.subjectName,
-              style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-        actions: [
-          // Timer badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: (quiz.timeLimitPerQuestionSeconds > 0 && quiz.currentQuestionSecondsLeft <= 15)
-                  ? const Color(0xFFFFF1F2)
-                  : const Color(0xFFEEF2FF),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: (quiz.timeLimitPerQuestionSeconds > 0 && quiz.currentQuestionSecondsLeft <= 15)
-                    ? const Color(0xFFFECDD3)
-                    : const Color(0xFFC7D2FE),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _confirmExit(context, quiz);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Question ${quiz.currentIndex + 1} of ${quiz.totalQuestions}',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.timer_outlined,
-                  size: 15,
+              Text(
+                q.chapterName.isNotEmpty ? q.chapterName : q.subjectName,
+                style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+          actions: [
+            // Timer badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: (quiz.timeLimitPerQuestionSeconds > 0 && quiz.currentQuestionSecondsLeft <= 15)
+                    ? const Color(0xFFFFF1F2)
+                    : const Color(0xFFEEF2FF),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
                   color: (quiz.timeLimitPerQuestionSeconds > 0 && quiz.currentQuestionSecondsLeft <= 15)
-                      ? const Color(0xFFE11D48)
-                      : const Color(0xFF4F46E5),
+                      ? const Color(0xFFFECDD3)
+                      : const Color(0xFFC7D2FE),
                 ),
-                const SizedBox(width: 4),
-                Text(
-                  timerText,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.timer_outlined,
+                    size: 15,
                     color: (quiz.timeLimitPerQuestionSeconds > 0 && quiz.currentQuestionSecondsLeft <= 15)
                         ? const Color(0xFFE11D48)
                         : const Color(0xFF4F46E5),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    timerText,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: (quiz.timeLimitPerQuestionSeconds > 0 && quiz.currentQuestionSecondsLeft <= 15)
+                          ? const Color(0xFFE11D48)
+                          : const Color(0xFF4F46E5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.grid_view_rounded),
+              tooltip: 'Question Palette',
+              onPressed: () => _openPaletteSheet(context, quiz),
+            ),
+          ],
+        ),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      // Question Header Meta
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEEF2FF),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              q.typeTitle,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF4F46E5),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              q.difficulty == 1 ? 'Easy' : (q.difficulty == 2 ? 'Medium' : 'Hard'),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF475569),
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          const Text(
+                            '+4  -1',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF059669),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Question Content
+                      Card(
+                        elevation: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.all(18),
+                          child: MathFormulaView(
+                            htmlContent: q.content,
+                            textStyle: const TextStyle(fontSize: 16, height: 1.5, color: Color(0xFF0F172A)),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Options List / Numerical Keypad
+                      if (q.type == 3) ...[
+                        Card(
+                          elevation: 0,
+                          child: Padding(
+                            padding: const EdgeInsets.all(18),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Enter Numerical Answer:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                const SizedBox(height: 10),
+                                _NumericalAnswerInput(
+                                  key: ValueKey('numerical_${q.questionId}'),
+                                  questionId: q.questionId,
+                                  initialValue: quiz.getNumericalAnswer(),
+                                  onChanged: (val) => quiz.setNumericalAnswer(val),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ] else ...[
+                        ...List.generate(q.options.length, (idx) {
+                          final opt = q.options[idx];
+                          final optIndex = idx + 1;
+                          final isSelected = quiz.isOptionSelected(optIndex);
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            decoration: BoxDecoration(
+                              color: isSelected ? const Color(0xFFEEF2FF) : Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: isSelected ? const Color(0xFF6366F1) : const Color(0xFFE2E8F0),
+                                width: isSelected ? 1.5 : 1,
+                              ),
+                            ),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(14),
+                              onTap: () => quiz.toggleOption(optIndex),
+                              child: Padding(
+                                padding: const EdgeInsets.all(14),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      height: 24,
+                                      width: 24,
+                                      margin: const EdgeInsets.only(top: 2),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: isSelected ? const Color(0xFF4F46E5) : Colors.transparent,
+                                        border: Border.all(
+                                          color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFF94A3B8),
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        String.fromCharCode(65 + idx),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: isSelected ? Colors.white : const Color(0xFF64748B),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: MathFormulaView(
+                                        htmlContent: opt.text,
+                                        textStyle: TextStyle(
+                                          fontSize: 15,
+                                          color: isSelected ? const Color(0xFF1E1B4B) : const Color(0xFF1E293B),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ],
+                  ),
+                ),
+
+                // Bottom Navigation Bar
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                  ),
+                  child: Row(
+                    children: [
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        ),
+                        onPressed: () => quiz.clearResponse(),
+                        child: const Text('Clear', style: TextStyle(fontSize: 12)),
+                      ),
+                      const SizedBox(width: 8),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        ),
+                        onPressed: () => quiz.toggleMarkForReview(),
+                        icon: Icon(
+                          quiz.isMarkedForReview(q.questionId) ? Icons.bookmark : Icons.bookmark_border,
+                          size: 16,
+                        ),
+                        label: Text(
+                          quiz.isMarkedForReview(q.questionId) ? 'Unmark' : 'Review',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                      const Spacer(),
+                      if (quiz.currentIndex > 0)
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_rounded),
+                          onPressed: () => quiz.previousQuestion(),
+                        ),
+                      const SizedBox(width: 6),
+                      FilledButton(
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                        ),
+                        onPressed: () {
+                          if (quiz.currentIndex < quiz.totalQuestions - 1) {
+                            quiz.nextQuestion();
+                          } else {
+                            _confirmSubmit(context, quiz);
+                          }
+                        },
+                        child: Text(
+                          quiz.currentIndex < quiz.totalQuestions - 1 ? 'Next' : 'Finish',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.grid_view_rounded),
-            tooltip: 'Question Palette',
-            onPressed: () => _openPaletteSheet(context, quiz),
-          ),
-          FilledButton.tonal(
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              visualDensity: VisualDensity.compact,
-            ),
-            onPressed: () => _confirmSubmit(context, quiz),
-            child: const Text('Submit', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-          ),
-          const SizedBox(width: 10),
-        ],
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 850),
-          child: Column(
-            children: [
-              // Question & Options scrollable area
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    // Badges row
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEEF2FF),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            q.subjectName.isNotEmpty ? q.subjectName : 'Question',
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            q.typeTitle,
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF475569)),
-                          ),
-                        ),
-                        const Spacer(),
-                        if (quiz.isMarkedForReview(q.questionId))
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFEF3C7),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Text(
-                              '★ Marked for Review',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
-                            ),
-                          ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Question Content
-                    Card(
-                      elevation: 0,
-                      child: Padding(
-                        padding: const EdgeInsets.all(18),
-                        child: MathFormulaView(
-                          htmlContent: q.content,
-                          textStyle: const TextStyle(fontSize: 16, height: 1.5, color: Color(0xFF0F172A)),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Options List / Numerical Keypad
-                    if (q.type == 3) ...[
-                      Card(
-                        elevation: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(18),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Enter Numerical Answer:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                              const SizedBox(height: 10),
-                              TextField(
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                                decoration: const InputDecoration(
-                                  hintText: 'Type decimal or integer answer...',
-                                  border: OutlineInputBorder(),
-                                ),
-                                onChanged: (val) => quiz.setNumericalAnswer(val),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ] else ...[
-                      ...List.generate(q.options.length, (idx) {
-                        final opt = q.options[idx];
-                        final optIndex = idx + 1;
-                        final isSelected = quiz.isOptionSelected(optIndex);
-
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFFEEF2FF) : Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: isSelected ? const Color(0xFF6366F1) : const Color(0xFFE2E8F0),
-                              width: isSelected ? 1.5 : 1,
-                            ),
-                          ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(14),
-                            onTap: () => quiz.toggleOption(optIndex),
-                            child: Padding(
-                              padding: const EdgeInsets.all(14),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    height: 24,
-                                    width: 24,
-                                    margin: const EdgeInsets.only(top: 2),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: isSelected ? const Color(0xFF4F46E5) : Colors.transparent,
-                                      border: Border.all(
-                                        color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFF94A3B8),
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      String.fromCharCode(65 + idx),
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: isSelected ? Colors.white : const Color(0xFF64748B),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: MathFormulaView(
-                                      htmlContent: opt.text,
-                                      textStyle: TextStyle(
-                                        fontSize: 15,
-                                        color: isSelected ? const Color(0xFF1E1B4B) : const Color(0xFF1E293B),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-                    ],
-                  ],
-                ),
-              ),
-
-              // Bottom Navigation Bar
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border(top: BorderSide(color: Colors.grey.shade200)),
-                ),
-                child: Row(
-                  children: [
-                    OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      ),
-                      onPressed: () => quiz.clearResponse(),
-                      child: const Text('Clear', style: TextStyle(fontSize: 12)),
-                    ),
-                    const SizedBox(width: 8),
-                    OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      ),
-                      onPressed: () => quiz.toggleMarkForReview(),
-                      icon: Icon(
-                        quiz.isMarkedForReview(q.questionId) ? Icons.bookmark : Icons.bookmark_border,
-                        size: 16,
-                      ),
-                      label: Text(
-                        quiz.isMarkedForReview(q.questionId) ? 'Unmark' : 'Review',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ),
-                    const Spacer(),
-                    if (quiz.currentIndex > 0)
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded),
-                        onPressed: () => quiz.previousQuestion(),
-                      ),
-                    const SizedBox(width: 6),
-                    FilledButton(
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                      ),
-                      onPressed: () {
-                        if (quiz.currentIndex < quiz.totalQuestions - 1) {
-                          quiz.nextQuestion();
-                        } else {
-                          _confirmSubmit(context, quiz);
-                        }
-                      },
-                      child: Text(
-                        quiz.currentIndex < quiz.totalQuestions - 1 ? 'Next' : 'Finish',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
         ),
       ),
+    );
+  }
+}
+
+class _NumericalAnswerInput extends StatefulWidget {
+  final String questionId;
+  final String initialValue;
+  final ValueChanged<String> onChanged;
+
+  const _NumericalAnswerInput({
+    super.key,
+    required this.questionId,
+    required this.initialValue,
+    required this.onChanged,
+  });
+
+  @override
+  State<_NumericalAnswerInput> createState() => _NumericalAnswerInputState();
+}
+
+class _NumericalAnswerInputState extends State<_NumericalAnswerInput> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void didUpdateWidget(covariant _NumericalAnswerInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.questionId != widget.questionId || _controller.text != widget.initialValue) {
+      _controller.text = widget.initialValue;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _controller,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+      decoration: const InputDecoration(
+        hintText: 'Type decimal or integer answer...',
+        border: OutlineInputBorder(),
+      ),
+      onChanged: widget.onChanged,
     );
   }
 }

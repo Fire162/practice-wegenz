@@ -81,6 +81,20 @@ void main() {
       expect(q.type, 3);
       expect(q.numericAnswer, 9.8);
     });
+
+    test('Question deserialization handles raw string options and solutions without crashing', () {
+      final json = {
+        'questionId': 'q_string_robust',
+        'content': 'Sample question',
+        'options': ['Raw Option 1', 'Raw Option 2'],
+        'solutions': ['Raw solution string'],
+      };
+      final q = InfinitePracticeQuestion.fromJson(json);
+      expect(q.options.length, 2);
+      expect(q.options[0].text, 'Raw Option 1');
+      expect(q.solutions.length, 1);
+      expect(q.solutions[0].text, 'Raw solution string');
+    });
   });
 
   group('QuizProvider Scoring & Navigation Logic', () {
@@ -208,6 +222,82 @@ void main() {
       quiz.previousQuestion();
       expect(quiz.currentIndex, 0);
       quiz.dispose();
+    });
+
+    test('Clear response resets option selection and numerical text answers', () {
+      final quiz = QuizProvider(
+        questions: [qSingle, qNumeric],
+        testId: 'test-clear',
+      );
+
+      // Select option on Q1
+      quiz.toggleOption(2);
+      expect(quiz.isOptionSelected(2), true);
+      expect(quiz.getQuestionStatus(0), QuestionStatus.answered);
+
+      // Clear response
+      quiz.clearResponse();
+      expect(quiz.isOptionSelected(2), false);
+      expect(quiz.getQuestionStatus(0), QuestionStatus.skipped);
+
+      // Set numerical answer on Q2
+      quiz.jumpToQuestion(1);
+      quiz.setNumericalAnswer('42.0');
+      expect(quiz.getNumericalAnswer(), '42.0');
+      expect(quiz.getQuestionStatus(1), QuestionStatus.answered);
+
+      // Clear response
+      quiz.clearResponse();
+      expect(quiz.getNumericalAnswer(), '');
+      expect(quiz.getQuestionStatus(1), QuestionStatus.skipped);
+
+      quiz.dispose();
+    });
+
+    test('Numerical floating point tolerance handles precision within 0.001', () {
+      // Test within tolerance: 12.5008 - 12.5 = 0.0008 (< 0.001) -> correct
+      final quizPass = QuizProvider(
+        questions: [qNumeric],
+        testId: 'test-num-pass',
+      );
+      quizPass.setNumericalAnswer(' 12.5008 ');
+      quizPass.finishTest();
+      expect(quizPass.result!.correct, 1);
+      expect(quizPass.result!.score, 4);
+      quizPass.dispose();
+
+      // Test outside tolerance: 12.502 - 12.5 = 0.002 (>= 0.001) -> incorrect
+      final quizFail = QuizProvider(
+        questions: [qNumeric],
+        testId: 'test-num-fail',
+      );
+      quizFail.setNumericalAnswer('12.502');
+      quizFail.finishTest();
+      expect(quizFail.result!.incorrect, 1);
+      expect(quizFail.result!.score, -1);
+      quizFail.dispose();
+    });
+
+    test('Resilient instantiation with empty question list does not crash', () {
+      final emptyQuiz = QuizProvider(
+        questions: [],
+        testId: 'test-empty',
+      );
+
+      expect(emptyQuiz.totalQuestions, 0);
+      expect(emptyQuiz.isFinished, false);
+      expect(emptyQuiz.isOptionSelected(1), false);
+      expect(emptyQuiz.getNumericalAnswer(), '');
+      expect(emptyQuiz.getQuestionStatus(0), QuestionStatus.notVisited);
+
+      // Finish empty test
+      emptyQuiz.finishTest();
+      expect(emptyQuiz.isFinished, true);
+      expect(emptyQuiz.result, isNotNull);
+      expect(emptyQuiz.result!.totalQuestions, 0);
+      expect(emptyQuiz.result!.score, 0);
+      expect(emptyQuiz.result!.accuracy, 0);
+      emptyQuiz.dispose();
     });
   });
 }

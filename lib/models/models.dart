@@ -142,12 +142,22 @@ class InfinitePracticeQuestion {
 
   factory InfinitePracticeQuestion.fromJson(Map<String, dynamic> json) {
     final opts = (json['options'] as List<dynamic>?)
-            ?.map((o) => InfinitePracticeOption.fromJson(o as Map<String, dynamic>))
+            ?.map((o) {
+              if (o is Map<String, dynamic>) {
+                return InfinitePracticeOption.fromJson(o);
+              }
+              return InfinitePracticeOption(text: o?.toString() ?? '');
+            })
             .toList() ??
         [];
 
     final sols = (json['solutions'] as List<dynamic>?)
-            ?.map((s) => InfinitePracticeSolution.fromJson(s as Map<String, dynamic>))
+            ?.map((s) {
+              if (s is Map<String, dynamic>) {
+                return InfinitePracticeSolution.fromJson(s);
+              }
+              return InfinitePracticeSolution(text: s?.toString() ?? '');
+            })
             .toList() ??
         [];
 
@@ -164,7 +174,7 @@ class InfinitePracticeQuestion {
       chapterName: json['chapterName']?.toString() ?? '',
       subjectId: json['subjectId']?.toString() ?? '',
       subjectName: json['subjectName']?.toString() ?? '',
-      numericAnswer: json['numericAnswer'] ?? json['answers']?[0],
+      numericAnswer: json['numericAnswer'] ?? (json['answers'] is List && (json['answers'] as List).isNotEmpty ? json['answers'][0] : null),
     );
   }
 }

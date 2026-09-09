@@ -20,11 +20,12 @@ class _ResultScreenState extends State<ResultScreen> {
   String? _shareCode;
 
   Future<void> _shareChallenge(BuildContext context) async {
+    if (widget.report.reviews.isEmpty) return;
     setState(() => _isSharing = true);
     try {
       final qList = widget.report.reviews.map((r) => r.question).toList();
       final code = await ApiService.shareTest(
-        batchId: qList.first.chapterId.isNotEmpty ? qList.first.chapterId : 'practice',
+        batchId: qList.isNotEmpty && qList.first.chapterId.isNotEmpty ? qList.first.chapterId : 'practice',
         batchName: 'Custom Practice',
         subjectNames: qList.map((q) => q.subjectName).toSet().toList(),
         timeLimitSeconds: widget.report.totalTimeSeconds,
@@ -60,17 +61,17 @@ class _ResultScreenState extends State<ResultScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final report = widget.report;
-    final mins = report.totalTimeSeconds ~/ 60;
-    final secs = report.totalTimeSeconds % 60;
+    final r = widget.report;
+    final minutes = (r.totalTimeSeconds ~/ 60).toString().padLeft(2, '0');
+    final seconds = (r.totalTimeSeconds % 60).toString().padLeft(2, '0');
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Performance Report', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text('Practice Performance & Solutions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         actions: [
-          IconButton(
+          TextButton.icon(
             icon: const Icon(Icons.home_outlined),
-            tooltip: 'Home',
+            label: const Text('Home'),
             onPressed: () {
               Navigator.pushAndRemoveUntil(
                 context,
@@ -83,72 +84,146 @@ class _ResultScreenState extends State<ResultScreen> {
       ),
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 850),
+          constraints: const BoxConstraints(maxWidth: 800),
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              // Scorecard Hero
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFEEF2FF), Colors.white, Color(0xFFF0FDF4)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFFE0E7FF)),
+              // Summary Score Card
+              Card(
+                elevation: 0,
+                color: const Color(0xFFEEF2FF),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: const BorderSide(color: Color(0xFFC7D2FE)),
                 ),
-                child: Column(
-                  children: [
-                    const Text(
-                      'TOTAL PRACTICE SCORE',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF4F46E5), letterSpacing: 1.1),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '${report.score}',
-                      style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Accuracy: ${report.accuracy}%  •  Time: ${mins}m ${secs}s',
-                      style: const TextStyle(fontSize: 13, color: Color(0xFF475569), fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 20),
-                    // Stats Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _statCard('Attempted', '${report.attempted}/${report.totalQuestions}', const Color(0xFF64748B)),
-                        _statCard('Correct', '${report.correct}', const Color(0xFF10B981)),
-                        _statCard('Incorrect', '${report.incorrect}', const Color(0xFFEF4444)),
-                        _statCard('Skipped', '${report.skipped}', const Color(0xFFF59E0B)),
-                      ],
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'TOTAL SCORE',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF4338CA),
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: [
+                                  Text(
+                                    '${r.score}',
+                                    style: const TextStyle(
+                                      fontSize: 42,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF1E1B4B),
+                                    ),
+                                  ),
+                                  Text(
+                                    ' / ${r.totalQuestions * 4}',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          Container(
+                            height: 72,
+                            width: 72,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(0xFF4F46E5),
+                            ),
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '${r.accuracy}%',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  const Text(
+                                    'Accuracy',
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      const Divider(color: Color(0xFFC7D2FE)),
+                      const SizedBox(height: 16),
+                      // Stats Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _statCard('Attempted', '${r.attempted}', const Color(0xFF4F46E5)),
+                          _statCard('Correct', '${r.correct}', const Color(0xFF10B981)),
+                          _statCard('Incorrect', '${r.incorrect}', const Color(0xFFE11D48)),
+                          _statCard('Skipped', '${r.skipped}', const Color(0xFF64748B)),
+                          _statCard('Time Spent', '$minutes:$seconds', const Color(0xFF0F172A)),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
               const SizedBox(height: 20),
 
-              // Action Buttons
+              // Action buttons: Share & Retake
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: const BorderSide(color: Color(0xFF4F46E5)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
                       icon: _isSharing
-                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Icon(Icons.share_outlined, size: 18),
-                      label: Text(_shareCode != null ? 'Challenge Copied!' : 'Share Challenge'),
+                          ? const SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.share_rounded, size: 18),
+                      label: Text(_shareCode != null ? 'Link Copied!' : 'Share Challenge Link'),
                       onPressed: _isSharing ? null : () => _shareChallenge(context),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
                       icon: const Icon(Icons.refresh_rounded, size: 18),
-                      label: const Text('New Practice Set'),
+                      label: const Text('Start New Practice'),
                       onPressed: () {
                         Navigator.pushAndRemoveUntil(
                           context,
@@ -161,52 +236,71 @@ class _ResultScreenState extends State<ResultScreen> {
                 ],
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
 
               // Detailed Solutions Header
-              const Text(
-                'Question-by-Question Review & Solutions',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'DETAILED STEP-BY-STEP REVIEW',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF4F46E5),
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                  Text(
+                    '${r.reviews.length} Questions',
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
 
-              // Question Solutions List
-              ...List.generate(report.reviews.length, (idx) {
-                final rev = report.reviews[idx];
+              const SizedBox(height: 14),
+
+              // Reviews List
+              ...List.generate(r.reviews.length, (idx) {
+                final rev = r.reviews[idx];
                 final q = rev.question;
 
-                Color statusBg;
                 Color statusColor;
+                Color statusBg;
                 String statusLabel;
 
                 if (!rev.isAttempted) {
-                  statusBg = const Color(0xFFFEF3C7);
-                  statusColor = const Color(0xFFB45309);
-                  statusLabel = 'Skipped';
+                  statusColor = const Color(0xFF64748B);
+                  statusBg = const Color(0xFFF1F5F9);
+                  statusLabel = 'Skipped (+0)';
                 } else if (rev.isCorrect) {
-                  statusBg = const Color(0xFFECFDF5);
                   statusColor = const Color(0xFF047857);
+                  statusBg = const Color(0xFFECFDF5);
                   statusLabel = 'Correct (+4)';
                 } else {
-                  statusBg = const Color(0xFFFFF1F2);
                   statusColor = const Color(0xFFBE123C);
+                  statusBg = const Color(0xFFFFF1F2);
                   statusLabel = 'Incorrect (-1)';
                 }
 
                 return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
+                  margin: const EdgeInsets.only(bottom: 20),
                   elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.all(18),
+                    padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Question header
+                        // Card Header
                         Row(
                           children: [
                             Text(
-                              'Q${idx + 1}',
-                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Color(0xFF0F172A)),
+                              'Question ${idx + 1}',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                             ),
                             const SizedBox(width: 10),
                             Container(

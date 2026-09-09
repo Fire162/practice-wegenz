@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 
 class QuizProvider extends ChangeNotifier {
-  final List<InfinitePracticeQuestion> _questions;
-  final int _timeLimitPerQuestionSeconds;
+  final List<InfinitePracticeQuestion> questions;
+  final int timeLimitPerQuestionSeconds;
   final String _testId;
 
   int _currentIndex = 0;
@@ -19,44 +19,48 @@ class QuizProvider extends ChangeNotifier {
   bool _isFinished = false;
   TestScoreReport? _result;
 
-  List<InfinitePracticeQuestion> get questions => _questions;
   int get currentIndex => _currentIndex;
-  InfinitePracticeQuestion get currentQuestion => _questions[_currentIndex];
-  int get totalQuestions => _questions.length;
+  InfinitePracticeQuestion get currentQuestion =>
+      questions.isNotEmpty ? questions[_currentIndex] : InfinitePracticeQuestion(questionId: '', content: '');
+  int get totalQuestions => questions.length;
   bool get isFinished => _isFinished;
   TestScoreReport? get result => _result;
 
   int get currentQuestionSecondsLeft => _currentQuestionSecondsLeft;
   int get totalElapsedSeconds => _totalElapsedSeconds;
-  int get timeLimitPerQuestionSeconds => _timeLimitPerQuestionSeconds;
 
   QuizProvider({
-    required this._questions,
-    this._timeLimitPerQuestionSeconds = 0,
+    required this.questions,
+    this.timeLimitPerQuestionSeconds = 0,
     String? testId,
-  })  : _testId = testId ?? 'test-${DateTime.now().millisecondsSinceEpoch}' {
-    _startTimer();
+  }) : _testId = testId ?? 'test-${DateTime.now().millisecondsSinceEpoch}' {
+    if (questions.isNotEmpty) {
+      _startTimer();
+    }
   }
 
   void _startTimer() {
-    _currentQuestionSecondsLeft = _timeLimitPerQuestionSeconds;
+    if (questions.isEmpty) return;
+    _currentQuestionSecondsLeft = timeLimitPerQuestionSeconds;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_isFinished) {
+      if (_isFinished || questions.isEmpty) {
         timer.cancel();
         return;
       }
 
       _totalElapsedSeconds++;
-      final qId = currentQuestion.questionId;
-      _timeSpentPerQuestion[qId] = (_timeSpentPerQuestion[qId] ?? 0) + 1;
+      if (_currentIndex < questions.length) {
+        final qId = currentQuestion.questionId;
+        _timeSpentPerQuestion[qId] = (_timeSpentPerQuestion[qId] ?? 0) + 1;
+      }
 
-      if (_timeLimitPerQuestionSeconds > 0) {
+      if (timeLimitPerQuestionSeconds > 0) {
         if (_currentQuestionSecondsLeft > 1) {
           _currentQuestionSecondsLeft--;
         } else {
           // Question time expired: auto-advance
-          if (_currentIndex < _questions.length - 1) {
+          if (_currentIndex < questions.length - 1) {
             nextQuestion();
           } else {
             finishTest();
@@ -68,7 +72,7 @@ class QuizProvider extends ChangeNotifier {
   }
 
   void toggleOption(int optionIndex) {
-    if (_isFinished) return;
+    if (_isFinished || questions.isEmpty) return;
     final q = currentQuestion;
     final currentList = List<int>.from(_userAnswers[q.questionId] ?? []);
 
@@ -94,13 +98,13 @@ class QuizProvider extends ChangeNotifier {
   }
 
   void setNumericalAnswer(String val) {
-    if (_isFinished) return;
+    if (_isFinished || questions.isEmpty) return;
     _userNumericalAnswers[currentQuestion.questionId] = val;
     notifyListeners();
   }
 
   void clearResponse() {
-    if (_isFinished) return;
+    if (_isFinished || questions.isEmpty) return;
     final qId = currentQuestion.questionId;
     _userAnswers.remove(qId);
     _userNumericalAnswers.remove(qId);
@@ -108,7 +112,7 @@ class QuizProvider extends ChangeNotifier {
   }
 
   void toggleMarkForReview() {
-    if (_isFinished) return;
+    if (_isFinished || questions.isEmpty) return;
     final qId = currentQuestion.questionId;
     if (_markedForReview.contains(qId)) {
       _markedForReview.remove(qId);
@@ -119,10 +123,12 @@ class QuizProvider extends ChangeNotifier {
   }
 
   bool isOptionSelected(int optionIndex) {
+    if (questions.isEmpty) return false;
     return (_userAnswers[currentQuestion.questionId] ?? []).contains(optionIndex);
   }
 
   String getNumericalAnswer() {
+    if (questions.isEmpty) return '';
     return _userNumericalAnswers[currentQuestion.questionId] ?? '';
   }
 
@@ -131,8 +137,8 @@ class QuizProvider extends ChangeNotifier {
   }
 
   QuestionStatus getQuestionStatus(int index) {
-    if (index >= _questions.length) return QuestionStatus.notVisited;
-    final q = _questions[index];
+    if (index >= questions.length) return QuestionStatus.notVisited;
+    final q = questions[index];
     final hasAnswer = (_userAnswers[q.questionId]?.isNotEmpty ?? false) ||
         (_userNumericalAnswers[q.questionId]?.trim().isNotEmpty ?? false);
     final isMarked = _markedForReview.contains(q.questionId);
@@ -145,17 +151,17 @@ class QuizProvider extends ChangeNotifier {
   }
 
   void jumpToQuestion(int index) {
-    if (index >= 0 && index < _questions.length) {
+    if (index >= 0 && index < questions.length) {
       _currentIndex = index;
-      _currentQuestionSecondsLeft = _timeLimitPerQuestionSeconds;
+      _currentQuestionSecondsLeft = timeLimitPerQuestionSeconds;
       notifyListeners();
     }
   }
 
   void nextQuestion() {
-    if (_currentIndex < _questions.length - 1) {
+    if (_currentIndex < questions.length - 1) {
       _currentIndex++;
-      _currentQuestionSecondsLeft = _timeLimitPerQuestionSeconds;
+      _currentQuestionSecondsLeft = timeLimitPerQuestionSeconds;
       notifyListeners();
     }
   }
@@ -163,7 +169,7 @@ class QuizProvider extends ChangeNotifier {
   void previousQuestion() {
     if (_currentIndex > 0) {
       _currentIndex--;
-      _currentQuestionSecondsLeft = _timeLimitPerQuestionSeconds;
+      _currentQuestionSecondsLeft = timeLimitPerQuestionSeconds;
       notifyListeners();
     }
   }
@@ -178,7 +184,7 @@ class QuizProvider extends ChangeNotifier {
     int skipped = 0;
     final List<QuestionSolutionReview> reviews = [];
 
-    for (final q in _questions) {
+    for (final q in questions) {
       final userAns = _userAnswers[q.questionId] ?? [];
       final userNumText = _userNumericalAnswers[q.questionId]?.trim();
       final hasAnswer = userAns.isNotEmpty || (userNumText != null && userNumText.isNotEmpty);
@@ -196,11 +202,11 @@ class QuizProvider extends ChangeNotifier {
         if (q.type == 3 && q.numericAnswer != null) {
           // Numerical comparison
           final userNum = double.tryParse(userNumText ?? '');
-          final targetNum = double.tryParse(q.numericAnswer.toString());
+          final targetNum = double.tryParse(q.numericAnswer.toString().trim());
           if (userNum != null && targetNum != null) {
             isAnswerCorrect = (userNum - targetNum).abs() < 0.001;
           } else {
-            isAnswerCorrect = (userNumText?.toLowerCase() == q.numericAnswer.toString().toLowerCase());
+            isAnswerCorrect = (userNumText?.trim().toLowerCase() == q.numericAnswer.toString().trim().toLowerCase());
           }
         } else {
           // Option selection comparison
@@ -236,7 +242,7 @@ class QuizProvider extends ChangeNotifier {
 
     _result = TestScoreReport(
       testId: _testId,
-      totalQuestions: _questions.length,
+      totalQuestions: questions.length,
       attempted: totalAttempted,
       correct: correct,
       incorrect: incorrect,

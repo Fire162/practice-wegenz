@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2026-09-09 16:07 IST
+## [2.0.0] - 2026-09-09 16:36 IST
 
 ### Added
 * Unified Flutter with Material 3 architecture supporting both Web (`mock.wegenz.in`) and Android release APK from a single Dart codebase.
@@ -18,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 * Migrated from legacy React 19/Vite web application to a unified Flutter 3.47 multiplatform client.
 * Standardized scoring engine with +4 marks for correct, -1 for incorrect, and 0 for skipped questions.
+
+### Fixed
+* Resolved numerical answer synchronization and text clearing in `TestRoomScreen` via `_NumericalAnswerInput`.
+* Fixed live test room lockup by auto-navigating to `ResultScreen` upon countdown timer expiration.
+* Added `PopScope` navigation guard to prevent accidental test exit and progress loss.
+* Resolved horizontal AppBar overflow on narrow mobile viewports in `HomeScreen`.
+* Guarded `ResultScreen` against `StateError` on empty review collections during challenge link generation.
+* Added unit test execution to GitHub Actions CI/CD workflow before artifact generation.
 
 ## [1.0.0] - 2026-09-08 23:06 IST
 
