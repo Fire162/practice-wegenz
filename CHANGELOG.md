@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-09-09 17:40 IST
+
+### Added
+* Continuous integration GitHub Actions workflow (`.github/workflows/ci.yml`) automating build verification and artifact generation.
+
+### Security
+* Hardened subject icon proxy using opaque AES-256 encrypted tokens (`/api/img/:token`) to obscure internal asset origin URLs.
+* Configured 50MB payload limits across Nginx and microservice body parsers to prevent HTTP 413 errors on large practice sets.
+
 ## [1.0.0] - 2026-09-08 23:06 IST
 
 ### Added
