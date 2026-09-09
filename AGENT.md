@@ -1,9 +1,13 @@
-# Infinite Practice Wegenz (`practice.wegenz.in`) — Developer & AI Agent Guide
+# Infinite Practice Wegenz (`mock.wegenz.in`) — Developer & AI Agent Guide
 
 ## 1. Project Overview
-**Infinite Practice Wegenz** (`practice.wegenz.in`) is a dedicated, distraction-free educational question practice and evaluation platform by **Fire162**, built with React 19, Vite, TypeScript, Tailwind CSS v4, and KaTeX math typesetting.
+**Infinite Practice Wegenz** (`mock.wegenz.in`) is an educational question practice and evaluation platform by **Fire162**, built with **Flutter** and **Material 3**.
 
-It provides unlimited custom practice sessions across 170,000+ JEE and NEET questions across 208 chapters, powered by a local PYQ microservice with instant local scoring, per-question timers, LaTeX math rendering, and video solutions.
+A single unified Dart codebase powers both:
+1. **Web application**: deployed to `mock.wegenz.in` and `practice.wegenz.in`.
+2. **Android application**: release APKs built via Flutter and Android SDK 36.
+
+It provides practice sessions across 170,000+ JEE and NEET questions across 208 chapters, powered by a local PYQ microservice with instant local scoring (+4/-1), per-question countdown timers, math/LaTeX formula rendering via `flutter_math_fork`, and video solutions.
 
 ---
 
@@ -11,24 +15,24 @@ It provides unlimited custom practice sessions across 170,000+ JEE and NEET ques
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    practice.wegenz.in                       │
-│        (Cloudflare Edge Proxy & Free SSL -> Port 443)       │
+│                    mock.wegenz.in                           │
+│        (Cloudflare Edge Proxy & SSL -> Port 443)            │
 └──────────────────────────────┬──────────────────────────────┘
                                │
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                       Nginx Virtual Host                    │
-│      (/etc/nginx/sites-available/practice.wegenz.in.conf)    │
+│        (/etc/nginx/sites-available/mock.wegenz.in.conf)     │
 └──────────────┬──────────────────────────────┬───────────────┘
-               │ (Port 5100 / Static Build)   │ (/api/* -> Port 8085)
+               │ (Port 5100 / Flutter Web)    │ (/api/* -> Port 8085)
                ▼                              ▼
 ┌──────────────────────────────┐ ┌────────────────────────────┐
-│      Practice React App      │ │    Local PYQ Microservice  │
-│   (Vite + React 19 + KaTeX)  │ │ (170k+ questions, 208 chs) │
-│   - Hub & Track Selector     │ │ - Manifest & Categories    │
+│      Flutter Web Client      │ │    Local PYQ Microservice  │
+│   (Material 3 + Provider)    │ │ (170k+ questions, 208 chs) │
+│   - Batch Track Selection    │ │ - Manifest & Categories    │
 │   - Multi-Subject Chapters   │ │ - Filtered Random Sets     │
-│   - Timer & KaTeX Room       │ │ - Challenge Code Sharing   │
-│   - Instant Local Scoring    │ └────────────────────────────┘
+│   - Live Timer & Math Room   │ │ - Challenge Code Sharing   │
+│   - Instant Scoring (+4/-1)  │ └────────────────────────────┘
 └──────────────────────────────┘
 ```
 
@@ -37,114 +41,102 @@ It provides unlimited custom practice sessions across 170,000+ JEE and NEET ques
 ## 3. Directory Structure
 
 ```
-/root/practice-wegenz/
+practice-wegenz/
+├── .github/
+│   └── workflows/
+│       └── flutter-build.yml  # GitHub Actions CI/CD workflow (Web & APK builds)
+├── android/                   # Android native wrapper & Gradle build configs
+├── build/                     # Compiled outputs (Web & Android APK)
+├── lib/
+│   ├── constants/
+│   │   └── constants.dart     # Batch tracks & encrypted subject tokens
+│   ├── models/
+│   │   └── models.dart        # Data models, question schemas, test reports
+│   ├── providers/
+│   │   ├── practice_provider.dart # Filters, chapter selection & question fetching
+│   │   └── quiz_provider.dart     # Active test room state, timer, scoring & review
+│   ├── screens/
+│   │   ├── home_screen.dart           # Landing screen with batch track cards
+│   │   ├── practice_setup_screen.dart # Stepper for subjects, chapters & timers
+│   │   ├── test_room_screen.dart      # Live CBT test room with question palette
+│   │   └── result_screen.dart         # Scorecard, accuracy, breakdown & review
+│   ├── services/
+│   │   └── api_service.dart   # REST client (/api/subjects, /api/random, etc.)
+│   ├── theme/
+│   │   └── app_theme.dart     # Material 3 Indigo (#4F46E5) theme & typography
+│   ├── widgets/
+│   │   └── math_formula_view.dart # Math/LaTeX rendering with flutter_math_fork
+│   └── main.dart              # App entry point with MultiProvider setup
+├── test/
+│   └── quiz_provider_and_models_test.dart # Unit tests for models & scoring
+├── web/                       # Web entry shell and manifest
+├── legacy-react/              # Preserved archive of initial React prototype
+├── pubspec.yaml               # Flutter package configuration & dependencies
 ├── AGENT.md                   # AI Agent & developer guide (this file)
-├── index.html                 # App shell with KaTeX stylesheets
-├── package.json               # Dependencies & scripts
-├── tsconfig.json              # TypeScript strict configuration
-├── vite.config.ts             # Vite configuration & /api proxy to port 8085
-├── public/                    # Static assets & favicon
-└── src/
-    ├── main.tsx               # React root entry
-    ├── App.tsx                # Wouter routing & QueryClient
-    ├── index.css              # Tailwind v4 setup & KaTeX display tweaks
-    ├── lib/
-    │   ├── utils.ts           # Classnames & Tailwind merge utility
-    │   └── apiUrl.ts          # API base URL resolution helper
-    ├── hooks/
-    │   ├── useInfinitePractice.ts # Subjects, chapters, random set & solution logic
-    │   └── usePageMeta.ts     # Document title & SEO meta helper
-    ├── components/
-    │   └── ui/skeleton.tsx    # Loading skeleton component
-    └── pages/
-        ├── home.tsx           # Track hub (11th/12th JEE & NEET)
-        └── practice.tsx       # Selection panel, question room & completion
+└── CHANGELOG.md               # Keep a Changelog releases log
 ```
 
 ---
 
 ## 4. Key Features & Design System
 
-1. **Exact PWX Design Language**:
-   - Matches the clean, modern aesthetic of PWX: slate backgrounds (`bg-slate-50`, `bg-white`), subtle borders (`border-slate-200`), indigo brand accents (`text-indigo-600`, `bg-indigo-50`), and status badges.
-2. **KaTeX Mathematical Typesetting**:
-   - MathML and LaTeX expressions in questions, options, and explanations are sanitized and auto-rendered via `renderMathInElement` with delimiters (`$$`, `\[`, `\(`, `$`).
+1. **Material 3 Design System**:
+   - Modern Material 3 UI with Indigo primary seed (`#4F46E5`), custom card themes, dialog themes, and Google Fonts Inter.
+2. **Formula Typesetting**:
+   - High-fidelity LaTeX and mathematical formula rendering powered by `flutter_math_fork` with AES proxy image fallback for encrypted tokens.
 3. **Multi-Subject Chapter Picking**:
-   - Supports selecting chapters across multiple subjects simultaneously with isolated *Select all* and *Clear* controls.
-4. **Custom Distribution & Allocation Modes**:
-   - Select 5 to 100 questions per set with quick presets, slider, or number input.
-   - Choose between **Equal Split** across selected subjects or **Custom Steppers** per subject.
-5. **Exam Pressure Timers**:
-   - Configurable per-question countdowns (No limit, 60s, 120s, 180s) with auto-advance and pacing analysis.
+   - Stepper selection across Physics, Chemistry, and Mathematics/Biology with individual subject expansion and selection counters.
+4. **Flexible Test Modes**:
+   - Customizable question counts (5 to 100) and configurable question timers (No limit, 60s, 120s, 180s) with live countdown pills.
+5. **CBT Scoring Engine**:
+   - Standard competitive exam marking: +4 for correct, -1 for incorrect, 0 for skipped.
+   - Numerical question evaluation with floating-point tolerance (±0.001).
 6. **Challenge Sharing**:
-   - Generates persistent share codes (`?test=code`) allowing students to challenge peers to the exact same question set.
-7. **Interactive Results & Review Experience**:
-   - Full-width (`max-w-4xl`) completion canvas with motivational accuracy tier badges (Outstanding >=80%, Good Effort 50-79%, Keep Practising <50%).
-   - Semantic metrics dashboard (Score, Accuracy gauge, Total Time, Avg Pace, Correct, Incorrect, Skipped).
-   - Color-coded question jump palette with target card focus highlighting, auto-filter reset, and smooth scroll.
-   - Interactive review filter tabs (All, Correct, Incorrect, Skipped) with celebration and encouraging empty states.
-   - Solution cards displaying all 4 KaTeX-rendered options with user choice vs correct answer highlights, full comprehension passage context, numerical value comparisons, detailed step-by-step explanations, in-page YouTube video solution popup player (with backdrop blur, auto-play, and escape-key dismissal), and sticky back-to-top navigation.
-
+   - Persistent share codes via `?test=<code>` for challenge links copied to clipboard.
+7. **Cross-Platform Support**:
+   - Unified codebase building responsive Web layouts and Android release APKs.
 
 ---
 
 ## 5. Development & Operations
 
-### Install Dependencies
+### Analyze Code
 ```bash
-cd /root/practice-wegenz
-pnpm install
+flutter analyze
 ```
 
-### Run Local Development Server (Port 5100)
+### Run Unit Tests
 ```bash
-pnpm run dev
+flutter test
 ```
 
-### Typecheck
+### Build Flutter Web (Release)
 ```bash
-pnpm run typecheck
+flutter build web --release
 ```
 
-### Production Build
+### Build Android APK (Release)
 ```bash
-pnpm run build
+export ANDROID_HOME=/usr/local/share/android-sdk
+flutter build apk --release
 ```
+Output path: `build/app/outputs/flutter-apk/app-release.apk`
 
-### Fire PM Service Management
-The application is registered as a managed system service under Fire PM:
+### Deployment to VPS
+1. Flutter Web release output is placed in `/root/practice-wegenz/dist`.
+2. Fire PM manages the web preview server on port 5100:
 ```bash
-fire start /root/practice-wegenz/start.js --name practice-wegenz
-fire info practice-wegenz
 fire restart practice-wegenz
-fire logs practice-wegenz
+fire info practice-wegenz
 ```
-
-### Fire Tunnel
-To expose port 5100 publicly over an HTTPS reverse proxy tunnel:
-```bash
-fire tunnel open 5100
-fire tunnel list
-fire tunnel close 5100
-```
-### Production Domain & Nginx Hosting
-The project is hosted on `practice.wegenz.in` and `mock.wegenz.in` via Nginx reverse proxy to port 5100:
-- Practice Config: `/etc/nginx/sites-available/practice.wegenz.in.conf`
-- Mock Config: `/etc/nginx/sites-available/mock.wegenz.in.conf`
-- PWX Config: `/etc/nginx/sites-available/pw.wegenz.in.conf` (proxies to port 5000)
-- All virtual hosts listen on Port 80 (HTTP) & Port 443 (SSL)
-- Reload command: `systemctl reload nginx`
-- Cloudflare DNS:
-  - `practice` A record -> `<your-vps-ip>` (Proxied)
-  - `mock` A record -> `<your-vps-ip>` (Proxied)
-  - `pw` A record -> `<your-vps-ip>` (Proxied)
+3. Nginx serves the traffic from `mock.wegenz.in` and `practice.wegenz.in` by proxying to port 5100.
+   - Cloudflare DNS points to VPS: `<your-vps-ip>`.
 
 ---
 
 ## 6. Guidelines for AI Agents
 
-* Always prefer `pnpm` over `npm` or `yarn`.
-* Keep `AGENT.md` up-to-date when modifying architecture or routes.
-* Do not introduce heavy dependencies when standard React or browser APIs suffice.
-* Always test build and typecheck before completing tasks.
-
+* Always run `flutter analyze` and `flutter test` before submitting changes.
+* Ensure 0 errors and 0 warnings.
+* Keep `AGENT.md` and `CHANGELOG.md` up to date with any architecture changes.
+* Maintain IP privacy guidelines: never hardcode or commit host IP addresses.

@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-09-09 16:07 IST
+
+### Added
+* Unified Flutter with Material 3 architecture supporting both Web (`mock.wegenz.in`) and Android release APK from a single Dart codebase.
+* Provider-driven reactive state management for batch track selection, chapter filters, live test countdowns, scoring, and review navigation.
+* Math and LaTeX formula typesetting engine powered by `flutter_math_fork` with fallback image rendering.
+* Automated Android release build pipeline generating signed release APKs (`build/app/outputs/flutter-apk/app-release.apk`).
+* GitHub Actions CI/CD workflow (`.github/workflows/flutter-build.yml`) automating Flutter Web and Android APK builds on push and pull requests.
+* Unit test suite (`test/quiz_provider_and_models_test.dart`) covering JSON deserialization, +4/-1 scoring accuracy, numerical tolerance, and test navigation.
+
+### Changed
+* Migrated from legacy React 19/Vite web application to a unified Flutter 3.47 multiplatform client.
+* Standardized scoring engine with +4 marks for correct, -1 for incorrect, and 0 for skipped questions.
+
 ## [1.0.0] - 2026-09-08 23:06 IST
 
 ### Added
