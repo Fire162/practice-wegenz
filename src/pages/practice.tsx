@@ -45,6 +45,7 @@ import { usePageMeta } from "@/hooks/usePageMeta";
 import { useBookmarks } from "@/hooks/useBookmarks";
 import {
   INFINITE_PRACTICE_BATCHES,
+  registerLocalPracticeSession,
   useGetSharedInfinitePractice,
   useInfinitePracticeMultiSubjectChapters,
   useInfinitePracticeSubjects,
@@ -1625,18 +1626,27 @@ function VideoModal({
 
 function BookmarksModal({
   isOpen,
+  initialMode = "EXAM",
   onClose,
   onStartPractice,
 }: {
   isOpen: boolean;
+  initialMode?: "EXAM" | "QUIZ";
   onClose: () => void;
-  onStartPractice: (questions: InfinitePracticeQuestion[]) => void;
+  onStartPractice: (questions: InfinitePracticeQuestion[], mode?: "EXAM" | "QUIZ") => void;
 }) {
   const { bookmarks, removeBookmark, clearBookmarks } = useBookmarks();
+  const [selectedMode, setSelectedMode] = useState<"EXAM" | "QUIZ">(initialMode);
   const [selectedSubject, setSelectedSubject] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [expandedSolutions, setExpandedSolutions] = useState<Record<string, boolean>>({});
   const [activeVideo, setActiveVideo] = useState<ActiveVideoModalData | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedMode(initialMode);
+    }
+  }, [isOpen, initialMode]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -1933,7 +1943,33 @@ function BookmarksModal({
                 Clear all bookmarks
               </button>
 
-              <div className="flex items-center gap-2.5">
+              <div className="flex flex-wrap items-center gap-2.5">
+                {/* Mode Selector */}
+                <div className="flex items-center rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMode("EXAM")}
+                    className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                      selectedMode === "EXAM"
+                        ? "bg-white text-indigo-700 shadow-xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Exam Mode
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMode("QUIZ")}
+                    className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                      selectedMode === "QUIZ"
+                        ? "bg-white text-indigo-700 shadow-xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Quiz Mode
+                  </button>
+                </div>
+
                 <button
                   type="button"
                   onClick={onClose}
@@ -1945,13 +1981,13 @@ function BookmarksModal({
                   type="button"
                   onClick={() => {
                     onClose();
-                    onStartPractice(filteredBookmarks);
+                    onStartPractice(filteredBookmarks, selectedMode);
                   }}
                   className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-5 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 transition cursor-pointer"
                 >
                   <Play className="h-3.5 w-3.5 fill-white" />
                   <span>
-                    Practise Bookmarks ({filteredBookmarks.length}{" "}
+                    Practise {selectedMode === "QUIZ" ? "Quiz" : "Test"} ({filteredBookmarks.length}{" "}
                     {filteredBookmarks.length === 1 ? "question" : "questions"})
                   </span>
                 </button>
@@ -1996,7 +2032,7 @@ function QuestionRoom({
   const [submitError, setSubmitError] = useState("");
   const [shareFeedback, setShareFeedback] = useState("");
   const submitTest = useSubmitInfinitePractice(session.testId);
-  const loadSolution = useInfinitePracticeSolution(session.testId);
+  const loadSolution = useInfinitePracticeSolution(session.testId, session.questions);
   const shareTest = useShareInfinitePractice();
   const startedAt = useRef(Date.now());
   const question = session.questions[index];
@@ -3906,6 +3942,7 @@ export default function InfinitePractice() {
     timeLimitSeconds: number,
     mode: "EXAM" | "QUIZ" = "EXAM",
   ) => {
+    registerLocalPracticeSession(nextSession.testId, nextSession.questions);
     setSession(nextSession);
     setTimeLimitPerQuestion(timeLimitSeconds);
     setPracticeMode(mode);
@@ -3916,6 +3953,9 @@ export default function InfinitePractice() {
 
   const retryCurrentTest = () => {
     if (!session) return;
+    const retryTestId = `${session.testId.replace(/-retry-\d+$/, "")}-retry-${Date.now()}`;
+    registerLocalPracticeSession(retryTestId, session.questions);
+    setSession({ testId: retryTestId, questions: session.questions });
     setTestResult(null);
     setRoomState("question");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -3968,6 +4008,7 @@ export default function InfinitePractice() {
         )}
         {roomState === "question" && session && (
           <QuestionRoom
+            key={session.testId}
             batchId={batchId}
             batchName={batchName}
             session={session}
@@ -3990,6 +4031,7 @@ export default function InfinitePractice() {
         )}
         {roomState === "complete" && testResult && session && (
           <Completion
+            key={session.testId}
             batchId={batchId}
             batchName={batchName}
             session={session}
@@ -4013,15 +4055,16 @@ export default function InfinitePractice() {
       {/* Global Saved Bookmarks Hub Modal */}
       <BookmarksModal
         isOpen={showBookmarksModal}
+        initialMode={practiceMode}
         onClose={() => setShowBookmarksModal(false)}
-        onStartPractice={(selectedBookmarks) => {
+        onStartPractice={(selectedBookmarks, chosenMode) => {
           startQuestionRoom(
             {
               testId: `bookmarks-${Date.now()}`,
               questions: selectedBookmarks,
             },
             timeLimitPerQuestion,
-            practiceMode,
+            chosenMode || practiceMode,
           );
         }}
       />
