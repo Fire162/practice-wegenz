@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary: #4f46e5;
   --color-primary-hover: #4338ca;
@@ -10,9 +12,27 @@
   color-scheme: light;
 }
 
-/* KaTeX custom sizing adjustments */
+.dark {
+  color-scheme: dark;
+}
+
+/* KaTeX custom sizing adjustments & dark mode formulas */
 .katex {
   font-size: 1.05em !important;
+}
+
+.dark .katex {
+  color: #f1f5f9 !important;
+}
+
+.dark .katex .mord,
+.dark .katex .mbin,
+.dark .katex .mrel,
+.dark .katex .mopen,
+.dark .katex .mclose,
+.dark .katex .mpunct,
+.dark .katex .minner {
+  color: #f1f5f9 !important;
 }
 
 .katex-display {
@@ -41,7 +61,15 @@
   background: #94a3b8;
 }
 
-/* Scraped solution layout cleanup */
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Scraped solution layout cleanup & dark mode image treatment */
 .practice-html article {
   padding: 0 !important;
   margin: 0 !important;
@@ -55,6 +83,12 @@
 .practice-html div[class*="min-h-[46px]"],
 .practice-html div[data-edge="true"] {
   display: none !important;
+}
+
+.dark .practice-html img {
+  border-radius: 0.75rem;
+  background-color: #ffffff;
+  padding: 0.25rem;
 }
 
 /* System Status Pulsing Dot & Expanding Ring */
