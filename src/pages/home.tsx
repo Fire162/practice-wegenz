@@ -18,9 +18,11 @@ export default function Home() {
       <header className="border-b border-slate-100 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 backdrop-blur sticky top-0 z-50 transition-colors">
         <div className="mx-auto max-w-5xl px-4 py-3 sm:px-6 lg:px-8 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white font-black text-base shadow-sm shadow-indigo-200 dark:shadow-indigo-950">
-              W
-            </span>
+            <img
+              src="/wegenz-primary-mark.jpg"
+              alt="Wegenz Logo"
+              className="h-9 w-9 rounded-xl object-cover shadow-sm shadow-indigo-200 dark:shadow-indigo-950 border border-slate-200/50 dark:border-slate-800"
+            />
             <div>
               <span className="text-base font-black tracking-tight text-slate-950 dark:text-white">
                 Wegenz <span className="text-indigo-600 dark:text-indigo-400">Practice</span>
