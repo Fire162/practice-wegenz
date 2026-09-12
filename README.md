@@ -19,6 +19,7 @@
   <img src="https://img.shields.io/badge/React-19.2-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-v4.1-38B2AC?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Dark_Theme-Supported-0f172a?style=flat-square&logo=ghostery&logoColor=white" alt="Dark Theme" />
   <img src="https://img.shields.io/badge/KaTeX-Math_Typesetting-3298dc?style=flat-square&logo=latex&logoColor=white" alt="KaTeX" />
   <img src="https://img.shields.io/badge/MPEG--DASH-dashjs-e11d48?style=flat-square&logo=html5&logoColor=white" alt="MPEG-DASH" />
   <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License" />
@@ -30,10 +31,10 @@
 
 ## 📖 Overview
 
-**Wegenz Infinite Practice** is a dedicated, zero-distraction test and practice platform designed specifically for competitive exam preparation (JEE Main, JEE Advanced, and NEET). Powered by a comprehensive curated archive of over **170,000+ past year questions (PYQs)** from national entrance examinations, it provides unlimited custom test generation, granular subject/chapter filtering, formula-perfect KaTeX typesetting, and comprehensive performance analytics.
+**Wegenz Infinite Practice** is a dedicated, zero-distraction test and practice platform designed specifically for competitive exam preparation (JEE Main, JEE Advanced, and NEET). Powered by a comprehensive curated archive of over **170,000+ past year questions (PYQs)** from national entrance examinations, it provides unlimited custom test generation, granular subject/chapter filtering, formula-perfect KaTeX typesetting, dual practice modes (Exam & Quiz), persistent bookmarking, and comprehensive performance analytics.
 
 > [!TIP]
-> Built for serious aspirants with a distraction-free, zero-latency interface — featuring authentic CBT exam simulation, keyboard shortcuts, formula-perfect KaTeX typesetting, and instant step-by-step video solutions.
+> Built for serious aspirants with a distraction-free, zero-latency interface — featuring authentic CBT exam simulation, keyboard shortcuts, formula-perfect KaTeX typesetting, dark mode support, and instant step-by-step video solutions.
 
 ---
 
@@ -54,8 +55,10 @@ flowchart TD
         NGINX["Nginx Virtual Hosts<br/>(:80 & :443 SSL)"]
         
         subgraph App["📦 Practice Web App (Fire PM :5100)"]
-            VITE["Vite Preview / SSR Server"]
-            REACT["React 19 + Tailwind v4 + KaTeX"]
+            VITE["Vite Preview / SPA Server"]
+            REACT["React 19 + Tailwind v4"]
+            THEME["Theme Engine<br/>(Light / Dark / System)"]
+            VAULT["Bookmarks Vault<br/>(localStorage Store)"]
             DASH["Dynamic dashjs Engine"]
         end
 
@@ -70,8 +73,10 @@ flowchart TD
     CF --> NGINX
     NGINX --> VITE
     VITE --> REACT
+    REACT --> THEME
+    REACT --> VAULT
     REACT -.->|Background Pre-load| DASH
-    VITE -->|Reverse Proxy /api/*| PYQ
+    NGINX -->|Reverse Proxy /api/*| PYQ
     PYQ --> DATA
 ```
 
@@ -92,10 +97,30 @@ flowchart TD
 </td>
 <td width="50%" valign="top">
 
-### 📐 KaTeX Mathematical Typesetting
-- **Formula Rendering**: Sanitized LaTeX and MathML parsing with `katex/contrib/auto-render`.
-- **Chemical Reactions**: Full support for complex chemical equations ($\text{CO}_3^{2-}$, $\text{HNO}_3$, enthalpy balances).
-- **Sub/Superscripts & Fractions**: Flawless formula rendering in questions, answer options, and step-by-step solutions.
+### 🌙 Dark Theme & KaTeX Typesetting
+- **Native Dark Theme**: Smooth theme switcher with light, dark, and OS sync modes, persistent across reloads.
+- **Anti-Flash Architecture**: Zero-flash inline script guarantees correct theme state before initial DOM paint.
+- **High-Contrast Math**: Formula-tuned KaTeX rendering ensuring crisp equations ($\Delta H$, $\int_0^1 x\,dx$) in dark mode.
+- **Sanitized MathML**: Secure LaTeX parsing with `katex/contrib/auto-render`.
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### ⚡ Dual Practice Modes: Exam vs. Quiz
+- **Exam Mode**: Simulates real timed CBT examinations where questions advance without revealing answers until submission.
+- **Quiz Mode**: Instant question evaluation with `+4 pts` / `-1 pt` score badges, correct vs. selected answer comparisons, and inline step-by-step explanations.
+- **Mode Toggle in Vault**: Choose how to practice bookmarked questions directly from the Bookmarks Hub.
+
+</td>
+<td width="50%" valign="top">
+
+### 🔖 Persistent Bookmarks Vault
+- **Client-Side Persistence**: Saves questions locally in `localStorage` under `wegenz_infinite_practice_bookmarks_v1`.
+- **Tab Synchronization**: Dispatches custom window storage events to keep open browser tabs and badges synchronized.
+- **Search & Filter**: Filter saved questions by subject tabs (Physics, Chemistry, Maths, Biology) or instant text search.
+- **Practise Bookmarks**: Launch instant custom practice rooms populated exclusively with your saved bookmarks.
 
 </td>
 </tr>
@@ -119,6 +144,57 @@ flowchart TD
 </td>
 </tr>
 </table>
+
+---
+
+## ⌨️ CBT Keyboard Navigation
+
+The test room supports keyboard shortcuts for fast, distraction-free examination navigation:
+
+| Key | Context | Action |
+| :--- | :--- | :--- |
+| <kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> / <kbd>4</kbd> | Question Room | Select or toggle options A, B, C, or D (multi-select supported) |
+| <kbd>↑</kbd> / <kbd>↓</kbd> | Single Choice Question | Cycle sequentially through answer options |
+| <kbd>→</kbd> | Question Room | Next question (or Check Answer / Skip in Quiz mode) |
+| <kbd>←</kbd> | Question Room | Previous question |
+| <kbd>B</kbd> | Question Room | Toggle question bookmark in personal vault |
+
+> [!NOTE]
+> **Input Protection**: When entering numeric or decimal answers on integer-type questions, all keyboard shortcuts are automatically suspended to prevent accidental question jumping while typing.
+
+---
+
+## 📡 API Architecture & Data Flow
+
+All frontend requests use relative paths (`/api/*`), securely proxied in production by Nginx to the local backend microservice:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Browser as Client Browser
+    participant Nginx as Nginx (:80 / :443)
+    participant PYQ as Backend Microservice (:8085)
+    participant Storage as 170k+ JSONL Archive
+
+    Browser->>Nginx: GET /api/random?grade=11th&subjects=Chemistry&count=15
+    Note over Nginx: Injects private x-api-key header
+    Nginx->>PYQ: GET /api/random + [x-api-key]
+    PYQ->>Storage: Query parsed subject/chapter indices
+    Storage-->>PYQ: Return 15 matching questions
+    PYQ-->>Nginx: 200 OK (Questions + KaTeX + Solutions)
+    Nginx-->>Browser: JSON Payload
+```
+
+### Core API Endpoints
+
+| Endpoint | Method | Purpose | Key Parameters |
+| :--- | :--- | :--- | :--- |
+| `/api/subjects` | `GET` | Fetches available subjects for an exam track | `batchId` (`11th_JEE`, `12th_JEE`, `11th_NEET`, `12th_NEET`) |
+| `/api/chapters` | `GET` | Retrieves chapter lists and question tallies | `batchId`, `subjectId` |
+| `/api/random` | `GET` | Generates randomized custom practice sets | `grade`, `subjects`, `chapters`, `count`, `types`, `difficulty` |
+| `/api/share` | `POST` | Generates persistent challenge share codes | `{ batchId, subjectNames, timeLimitSeconds, questions }` |
+| `/api/share/:code` | `GET` | Loads shared challenge test by unique code | `:code` |
+| `/api/img/:token` | `GET` | Secure encrypted proxy for subject icons | `:token` (AES-256 encrypted asset URL) |
 
 ---
 
@@ -174,14 +250,27 @@ cd practice-wegenz
 pnpm install
 ```
 
-### 2. Local Development
+### 2. Environment Configuration
+
+Copy the example environment file:
+```bash
+cp .env.example .env
+```
+
+Configure your local proxy target if running the microservice on a custom host/port:
+```env
+VITE_API_TARGET=http://127.0.0.1:8085
+PRACTICE_API_KEY=your_development_api_key
+```
+
+### 3. Local Development
 
 ```bash
 pnpm run dev
 ```
 Access the development server at `http://localhost:5100`.
 
-### 3. Production Build & Verification
+### 4. Production Build & Verification
 
 ```bash
 # Typecheck
@@ -233,6 +322,7 @@ server {
     access_log /var/log/nginx/practice.wegenz.in-access.log;
     error_log /var/log/nginx/practice.wegenz.in-error.log;
 
+    # Frontend SPA
     location / {
         proxy_pass http://127.0.0.1:5100;
         proxy_http_version 1.1;
@@ -242,6 +332,18 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Internal PYQ API Microservice Reverse Proxy
+    location /api/ {
+        proxy_pass http://127.0.0.1:8085/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header x-api-key "<api-key>";
+        client_max_body_size 50M;
     }
 }
 ```
