@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Resolved empty solution evaluation and zero-score fallback when submitting tests started from saved bookmarks or shared test codes ([#3](https://github.com/Fire162/practice-wegenz/pull/3)).
 
 ### Added
+* Route-level code-splitting with `React.lazy()` and `Suspense`, dropping initial landing page bundle size from ~814 kB to ~241 kB total (~9.2 kB homepage chunk, ~70% reduction) ([#10](https://github.com/Fire162/practice-wegenz/pull/10)).
+* Progressive Web App (PWA) manifest (`manifest.webmanifest`) enabling standalone homescreen installation on mobile and desktop ([#10](https://github.com/Fire162/practice-wegenz/pull/10)).
+* Offline-resilient service worker (`sw.js`) with app shell caching, cache-first for hashed Vite assets/fonts, and network-first with graceful offline fallback for API requests ([#10](https://github.com/Fire162/practice-wegenz/pull/10)).
 * Full-featured Dark Mode theme with localStorage persistence (`wegenz_theme_v1`), anti-flash inline boot script, and system preference (`prefers-color-scheme`) synchronization ([#8](https://github.com/Fire162/practice-wegenz/pull/8)).
 * Accessible `ThemeToggle` button in the header across the homepage and infinite practice test rooms.
 * High-contrast dark styling for KaTeX mathematical and chemical expressions, code blocks, question canvases, jump palettes, and completion dashboards.
