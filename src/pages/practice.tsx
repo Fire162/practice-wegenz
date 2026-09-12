@@ -27,11 +27,13 @@ import {
   RotateCcw,
   Scale,
   Share2,
+  Search,
   ShieldAlert,
   Sliders,
   Sparkles,
   Target,
   Timer,
+  Trash2,
   Trophy,
   Users,
   X,
@@ -40,6 +42,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageMeta } from "@/hooks/usePageMeta";
+import { useBookmarks } from "@/hooks/useBookmarks";
 import {
   INFINITE_PRACTICE_BATCHES,
   useGetSharedInfinitePractice,
@@ -1620,6 +1623,350 @@ function VideoModal({
   );
 }
 
+function BookmarksModal({
+  isOpen,
+  onClose,
+  onStartPractice,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onStartPractice: (questions: InfinitePracticeQuestion[]) => void;
+}) {
+  const { bookmarks, removeBookmark, clearBookmarks } = useBookmarks();
+  const [selectedSubject, setSelectedSubject] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [expandedSolutions, setExpandedSolutions] = useState<Record<string, boolean>>({});
+  const [activeVideo, setActiveVideo] = useState<ActiveVideoModalData | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  const subjects = useMemo(() => {
+    const list = Array.from(
+      new Set(bookmarks.map((b) => b.subjectName).filter(Boolean)),
+    ) as string[];
+    return ["ALL", ...list];
+  }, [bookmarks]);
+
+  const filteredBookmarks = useMemo(() => {
+    return bookmarks.filter((b) => {
+      const matchSubject =
+        selectedSubject === "ALL" ||
+        b.subjectName?.toLowerCase() === selectedSubject.toLowerCase();
+      const matchSearch =
+        !searchQuery.trim() ||
+        (b.plainQuestionText &&
+          b.plainQuestionText.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (b.chapterName &&
+          b.chapterName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (b.content && b.content.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchSubject && matchSearch;
+    });
+  }, [bookmarks, selectedSubject, searchQuery]);
+
+  const toggleSolution = (qId: string) => {
+    setExpandedSolutions((prev) => ({ ...prev, [qId]: !prev[qId] }));
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-md"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0, y: 16 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 16 }}
+          transition={{ type: "spring", duration: 0.25 }}
+          onClick={(e) => e.stopPropagation()}
+          className="relative flex flex-col w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-200">
+                <Bookmark className="h-5 w-5 fill-amber-500 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 sm:text-lg flex items-center gap-2">
+                  Saved Bookmarks
+                  <span className="rounded-full bg-amber-100 text-amber-900 px-2.5 py-0.5 text-xs font-bold">
+                    {bookmarks.length}
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Questions you saved during practice for revision and re-testing
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-700 transition cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Controls Bar: Subject Tabs & Search */}
+          <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Subject filter tabs */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+              {subjects.map((subj) => (
+                <button
+                  key={subj}
+                  type="button"
+                  onClick={() => setSelectedSubject(subj)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                    selectedSubject === subj
+                      ? "bg-indigo-600 text-white shadow-xs"
+                      : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                  }`}
+                >
+                  {subj === "ALL" ? "All Subjects" : subj}
+                  {subj === "ALL"
+                    ? ` (${bookmarks.length})`
+                    : ` (${bookmarks.filter((b) => b.subjectName?.toLowerCase() === subj.toLowerCase()).length})`}
+                </button>
+              ))}
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search questions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-xs font-medium text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Bookmarks List Canvas */}
+          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+            {filteredBookmarks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-amber-50 text-amber-500 border border-amber-200 mb-4">
+                  <Bookmark className="h-8 w-8 text-amber-500" />
+                </div>
+                <h4 className="text-base font-bold text-slate-800">
+                  {bookmarks.length === 0 ? "No saved bookmarks yet" : "No matching questions"}
+                </h4>
+                <p className="mt-1.5 max-w-sm text-xs text-slate-500 leading-relaxed">
+                  {bookmarks.length === 0
+                    ? "While practising questions, click the Bookmark button or press 'B' on any question to save it here for later revision."
+                    : "Try selecting another subject or clearing your search query."}
+                </p>
+              </div>
+            ) : (
+              filteredBookmarks.map((qItem, qIdx) => {
+                const isExpanded = Boolean(expandedSolutions[qItem.questionId]);
+                const hasVideo = qItem.solutions?.some((s) => s.videoSolution?.url);
+
+                return (
+                  <div
+                    key={qItem.questionId}
+                    className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs transition hover:border-slate-300"
+                  >
+                    {/* Card Top Metadata */}
+                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3 mb-3">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="rounded-lg bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700">
+                          {qItem.subjectName || "Subject"}
+                        </span>
+                        <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700">
+                          {qItem.chapterName || "Chapter"}
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          #{qIdx + 1}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {hasVideo && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const solWithVid = qItem.solutions.find((s) => s.videoSolution?.url);
+                              if (!solWithVid?.videoSolution?.url) return;
+                              const url = solWithVid.videoSolution.url;
+                              const vType = getVideoType(url);
+                              if (vType) {
+                                setActiveVideo({
+                                  type: vType,
+                                  videoId: getYouTubeId(url) || undefined,
+                                  url,
+                                  title: `${qItem.chapterName || "Question"} Solution`,
+                                });
+                              }
+                            }}
+                            className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1 text-[11px] font-bold text-indigo-700 hover:bg-indigo-100 transition cursor-pointer"
+                          >
+                            <Play className="h-3 w-3 fill-indigo-600" /> Video
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeBookmark(qItem.questionId)}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 transition cursor-pointer"
+                          title="Remove bookmark"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Question Content */}
+                    <HtmlContent
+                      html={qItem.content || qItem.plainQuestionText}
+                      className="text-sm leading-relaxed text-slate-900 mb-3 [&_img]:max-h-[220px]"
+                    />
+
+                    {/* Options Preview */}
+                    {qItem.options && qItem.options.length > 0 && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 my-2">
+                        {qItem.options.map((opt, oIdx) => (
+                          <div
+                            key={oIdx}
+                            className={`flex items-start gap-2 rounded-xl p-2.5 text-xs border ${
+                              isExpanded && opt.isCorrect
+                                ? "border-emerald-400 bg-emerald-50/80 text-emerald-950 font-medium"
+                                : "border-slate-100 bg-slate-50/60 text-slate-700"
+                            }`}
+                          >
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded font-bold bg-white border border-slate-200 text-[10px]">
+                              {String.fromCharCode(65 + oIdx)}
+                            </span>
+                            <HtmlContent html={opt.text} className="min-w-0 flex-1 [&_p]:mb-0" />
+                            {isExpanded && opt.isCorrect && (
+                              <span className="shrink-0 text-emerald-600 font-bold text-[10px]">
+                                Correct
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Numerical Expected Answer */}
+                    {qItem.numericAnswer !== undefined && qItem.numericAnswer !== null && (
+                      <div className="my-2 inline-flex items-center gap-2 rounded-xl bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-900 border border-sky-200">
+                        <span>Answer value:</span>
+                        <code className="font-mono bg-white px-2 py-0.5 rounded border border-sky-300 font-bold">
+                          {String(qItem.numericAnswer)}
+                        </code>
+                      </div>
+                    )}
+
+                    {/* Expand/Collapse Solution Button */}
+                    {qItem.solutions && qItem.solutions.length > 0 && (
+                      <div className="mt-3 border-t border-slate-100 pt-2.5 flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => toggleSolution(qItem.questionId)}
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition cursor-pointer"
+                        >
+                          <Sparkles className="h-3.5 w-3.5" />
+                          <span>{isExpanded ? "Hide Solution" : "View Step-by-Step Solution"}</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Expandable KaTeX Explanation */}
+                    {isExpanded && qItem.solutions && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="mt-3 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3.5 text-xs"
+                      >
+                        <p className="font-bold text-indigo-900 mb-1.5 uppercase tracking-wider text-[10px]">
+                          Explanation:
+                        </p>
+                        {qItem.solutions.map((sol, sIdx) => (
+                          <div key={sIdx}>
+                            {sol.text && (
+                              <HtmlContent
+                                html={sol.text}
+                                className="leading-relaxed text-slate-800 [&_img]:my-2 [&_img]:max-h-[250px]"
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Sticky Modal Bottom Action Bar */}
+          {filteredBookmarks.length > 0 && (
+            <div className="border-t border-slate-100 bg-white px-5 py-3.5 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to remove all saved bookmarks?")) {
+                    clearBookmarks();
+                  }
+                }}
+                className="text-xs font-semibold text-rose-600 hover:text-rose-700 transition cursor-pointer self-start sm:self-auto"
+              >
+                Clear all bookmarks
+              </button>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="h-10 rounded-xl border border-slate-200 px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onStartPractice(filteredBookmarks);
+                  }}
+                  className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-5 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 transition cursor-pointer"
+                >
+                  <Play className="h-3.5 w-3.5 fill-white" />
+                  <span>
+                    Practise Bookmarks ({filteredBookmarks.length}{" "}
+                    {filteredBookmarks.length === 1 ? "question" : "questions"})
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
+
+      {/* Video Modal inside Bookmarks Modal */}
+      <VideoModal activeVideo={activeVideo} onClose={() => setActiveVideo(null)} />
+    </AnimatePresence>
+  );
+}
+
 function QuestionRoom({
   batchId,
   batchName,
@@ -1637,7 +1984,7 @@ function QuestionRoom({
   practiceMode?: "EXAM" | "QUIZ";
   timeLimitSeconds?: number;
   bookmarkedIds?: string[];
-  onToggleBookmark?: (questionId: string) => void;
+  onToggleBookmark?: (question: InfinitePracticeQuestion) => void;
   onComplete: (result: InfinitePracticeTestSolution) => void;
   onExit: () => void;
 }) {
@@ -1833,7 +2180,7 @@ function QuestionRoom({
       if (e.key === "b" || e.key === "B") {
         e.preventDefault();
         if (question) {
-          onToggleBookmark?.(question.questionId);
+          onToggleBookmark?.(question);
         }
         return;
       }
@@ -2120,7 +2467,7 @@ function QuestionRoom({
               <button
                 type="button"
                 data-testid="button-bookmark-question"
-                onClick={() => onToggleBookmark?.(question.questionId)}
+                onClick={() => onToggleBookmark?.(question)}
                 className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-bold transition-all cursor-pointer ${
                   bookmarkedIds.includes(question.questionId)
                     ? "bg-amber-100 text-amber-900 border border-amber-300 shadow-xs"
@@ -2575,7 +2922,7 @@ function Completion({
   session: { testId: string; questions: InfinitePracticeQuestion[] };
   timeLimitSeconds?: number;
   bookmarkedIds?: string[];
-  onToggleBookmark?: (questionId: string) => void;
+  onToggleBookmark?: (question: InfinitePracticeQuestion) => void;
   result: InfinitePracticeTestSolution;
   onRetry: () => void;
   onRestart: () => void;
@@ -3258,7 +3605,7 @@ function Completion({
                     <button
                       type="button"
                       data-testid={`button-bookmark-solution-${qNum}`}
-                      onClick={() => onToggleBookmark?.(item.questionId)}
+                      onClick={() => onToggleBookmark?.(sessionQ || (item as any))}
                       className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold transition-all cursor-pointer ${
                         bookmarkedIds.includes(item.questionId)
                           ? "bg-amber-100 text-amber-900 border border-amber-300 shadow-xs"
@@ -3527,15 +3874,20 @@ export default function InfinitePractice() {
   const [timeLimitPerQuestion, setTimeLimitPerQuestion] = useState(0);
   const [practiceMode, setPracticeMode] = useState<"EXAM" | "QUIZ">("EXAM");
   const [testResult, setTestResult] = useState<InfinitePracticeTestSolution | null>(null);
-  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
   const matchedBatch = INFINITE_PRACTICE_BATCHES.find((b) => b.id === batchId || b.name === batchId);
   const batchName = matchedBatch?.name || "Infinite Practice";
 
-  const toggleBookmark = (questionId: string) => {
-    setBookmarkedIds((prev) =>
-      prev.includes(questionId) ? prev.filter((id) => id !== questionId) : [...prev, questionId],
-    );
-  };
+  const { bookmarks, bookmarkedIds, toggleBookmark } = useBookmarks();
+  const [showBookmarksModal, setShowBookmarksModal] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search);
+      if (p.get("bookmarks") === "open" || p.get("bookmarks") === "true") {
+        setShowBookmarksModal(true);
+      }
+    }
+  }, []);
 
   const sharedCode = useMemo(() => {
     if (typeof window === "undefined") return null;
@@ -3586,13 +3938,25 @@ export default function InfinitePractice() {
                   Pick a subject, chapter, difficulty, and question count. Practise at your own pace.
                 </p>
               </div>
-              <Link
-                data-testid="link-practice-back"
-                href="/"
-                className="inline-flex h-10 items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 sm:self-auto"
-              >
-                <ArrowLeft className="h-4 w-4" /> All tracks
-              </Link>
+              <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+                <button
+                  type="button"
+                  data-testid="button-open-bookmarks-hub"
+                  onClick={() => setShowBookmarksModal(true)}
+                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 text-xs font-bold text-amber-900 shadow-xs hover:bg-amber-100 transition cursor-pointer"
+                  title="Open your saved bookmarked questions"
+                >
+                  <Bookmark className="h-4 w-4 fill-amber-500 text-amber-600" />
+                  <span>Saved Bookmarks {bookmarks.length > 0 ? `(${bookmarks.length})` : ""}</span>
+                </button>
+                <Link
+                  data-testid="link-practice-back"
+                  href="/"
+                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 sm:self-auto"
+                >
+                  <ArrowLeft className="h-4 w-4" /> All tracks
+                </Link>
+              </div>
             </div>
             <SelectionPanel
               batchId={batchId}
@@ -3645,6 +4009,22 @@ export default function InfinitePractice() {
           />
         )}
       </main>
+
+      {/* Global Saved Bookmarks Hub Modal */}
+      <BookmarksModal
+        isOpen={showBookmarksModal}
+        onClose={() => setShowBookmarksModal(false)}
+        onStartPractice={(selectedBookmarks) => {
+          startQuestionRoom(
+            {
+              testId: `bookmarks-${Date.now()}`,
+              questions: selectedBookmarks,
+            },
+            timeLimitPerQuestion,
+            practiceMode,
+          );
+        }}
+      />
     </div>
   );
 }
