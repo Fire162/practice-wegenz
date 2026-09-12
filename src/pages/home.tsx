@@ -40,13 +40,13 @@ export default function Home() {
               <span>Saved Bookmarks {bookmarks.length > 0 ? `(${bookmarks.length})` : ""}</span>
             </Link>
             <div
-              className="hidden sm:inline-flex items-center gap-2 rounded-full border border-slate-800 bg-black px-3 py-1 text-xs shadow-xs"
+              className="hidden sm:inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs shadow-xs"
               title="All systems operational"
             >
               <span className="status-dot-wrapper">
                 <span className="status-dot"></span>
               </span>
-              <span className="font-['JetBrains_Mono',monospace] text-[11px] font-medium tracking-tight text-[#10b981]">
+              <span className="font-['JetBrains_Mono',monospace] text-[11px] font-semibold tracking-tight text-emerald-800">
                 All Systems Operational
               </span>
             </div>
