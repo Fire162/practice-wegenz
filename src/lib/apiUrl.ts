@@ -11,8 +11,9 @@ export const apiUrl = (path: string) => {
 
 export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const headers = new Headers(init?.headers || {});
-  if (!headers.has("x-api-key")) {
-    headers.set("x-api-key", import.meta.env.VITE_PYQ_API_KEY || "arjunonfire");
+  const apiKey = import.meta.env.VITE_PYQ_API_KEY;
+  if (apiKey && !headers.has("x-api-key")) {
+    headers.set("x-api-key", apiKey);
   }
   return fetch(input, { ...init, headers });
 }

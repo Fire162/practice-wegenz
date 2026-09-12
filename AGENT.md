@@ -65,8 +65,8 @@ It provides unlimited custom practice sessions across 170,000+ JEE and NEET ques
 
 ## 4. Key Features & Design System
 
-1. **Exact PWX Design Language**:
-   - Matches the clean, modern aesthetic of PWX: slate backgrounds (`bg-slate-50`, `bg-white`), subtle borders (`border-slate-200`), indigo brand accents (`text-indigo-600`, `bg-indigo-50`), and status badges.
+1. **Minimalist CBT Interface**:
+   - Clean slate styling (`bg-slate-50`, `bg-white`), subtle borders (`border-slate-200`), indigo accents (`text-indigo-600`, `bg-indigo-50`), and status badges tailored for distraction-free focus.
 2. **KaTeX Mathematical Typesetting**:
    - MathML and LaTeX expressions in questions, options, and explanations are sanitized and auto-rendered via `renderMathInElement` with delimiters (`$$`, `\[`, `\(`, `$`).
 3. **Multi-Subject Chapter Picking**:
@@ -131,13 +131,11 @@ fire tunnel close 5100
 The project is hosted on `practice.wegenz.in` and `mock.wegenz.in` via Nginx reverse proxy to port 5100:
 - Practice Config: `/etc/nginx/sites-available/practice.wegenz.in.conf`
 - Mock Config: `/etc/nginx/sites-available/mock.wegenz.in.conf`
-- PWX Config: `/etc/nginx/sites-available/pw.wegenz.in.conf` (proxies to port 5000)
 - All virtual hosts listen on Port 80 (HTTP) & Port 443 (SSL)
 - Reload command: `systemctl reload nginx`
 - Cloudflare DNS:
   - `practice` A record -> `<your-vps-ip>` (Proxied)
   - `mock` A record -> `<your-vps-ip>` (Proxied)
-  - `pw` A record -> `<your-vps-ip>` (Proxied)
 
 ---
 
