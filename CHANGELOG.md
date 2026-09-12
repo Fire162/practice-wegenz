@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Resolved empty solution evaluation and zero-score fallback when submitting tests started from saved bookmarks or shared test codes ([#3](https://github.com/Fire162/practice-wegenz/pull/3)).
 
 ### Added
+* Full-featured Dark Mode theme with localStorage persistence (`wegenz_theme_v1`), anti-flash inline boot script, and system preference (`prefers-color-scheme`) synchronization ([#8](https://github.com/Fire162/practice-wegenz/pull/8)).
+* Accessible `ThemeToggle` button in the header across the homepage and infinite practice test rooms.
+* High-contrast dark styling for KaTeX mathematical and chemical expressions, code blocks, question canvases, jump palettes, and completion dashboards.
+* Animated live 'All Systems Operational' status badge in the header with pulsing radar-ring indicator ([#6](https://github.com/Fire162/practice-wegenz/pull/6), [#7](https://github.com/Fire162/practice-wegenz/pull/7)).
 * Saved Bookmarks Vault modal with subject filtering, search, step-by-step KaTeX explanations, and direct practice session launcher.
 * Dual practice modes: Exam Mode (standard flow) and Quiz Mode (instant KaTeX explanations, inline video popups, and +4/-1 answer feedback).
 * Smart keyboard navigation (`ArrowLeft`/`ArrowRight`, `ArrowUp`/`ArrowDown`, `1, 2, 3, 4`, and `B` for bookmark) with active input protection.
