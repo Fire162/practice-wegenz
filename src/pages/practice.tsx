@@ -9,6 +9,8 @@ import {
   ArrowUp,
   Award,
   BookOpen,
+  Bookmark,
+  BookmarkCheck,
   Check,
   CheckCircle2,
   CircleHelp,
@@ -1300,6 +1302,8 @@ function QuestionRoom({
   batchName,
   session,
   timeLimitSeconds = 0,
+  bookmarkedIds = [],
+  onToggleBookmark,
   onComplete,
   onExit,
 }: {
@@ -1307,6 +1311,8 @@ function QuestionRoom({
   batchName?: string;
   session: { testId: string; questions: InfinitePracticeQuestion[] };
   timeLimitSeconds?: number;
+  bookmarkedIds?: string[];
+  onToggleBookmark?: (questionId: string) => void;
   onComplete: (result: InfinitePracticeTestSolution) => void;
   onExit: () => void;
 }) {
@@ -1524,8 +1530,47 @@ function QuestionRoom({
           </button>
         </div>
       </div>
-      <div className="mb-5 h-1.5 overflow-hidden rounded-full bg-slate-200">
+      <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-slate-200">
         <motion.div animate={{ width: `${progress}%` }} className="h-full rounded-full bg-indigo-600" />
+      </div>
+
+      {/* In-Room Question Navigation Strip */}
+      <div className="mb-5 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        {session.questions.map((q, qIdx) => {
+          const isCurrent = qIdx === index;
+          const isAnswered = answers[q.questionId] && answers[q.questionId].status === "ATTEMPTED";
+          const isMarkedBookmarked = bookmarkedIds.includes(q.questionId);
+          return (
+            <button
+              key={q.questionId}
+              type="button"
+              data-testid={`room-palette-pill-${qIdx + 1}`}
+              onClick={() => {
+                const answer = makeAnswer();
+                if (answer) setAnswers((current) => ({ ...current, [answer.questionId]: answer }));
+                setIndex(qIdx);
+              }}
+              title={`Jump to Q${qIdx + 1}${isMarkedBookmarked ? " (Bookmarked)" : ""}`}
+              className={`relative flex h-8 min-w-8 items-center justify-center rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                isCurrent
+                  ? "bg-indigo-600 text-white ring-2 ring-indigo-600 ring-offset-1 shadow-sm"
+                  : isAnswered
+                  ? "bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200"
+                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              <span>{qIdx + 1}</span>
+              {isMarkedBookmarked && (
+                <span
+                  className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-400 text-amber-950 shadow-xs"
+                  title="Bookmarked"
+                >
+                  <Bookmark className="h-2 w-2 fill-amber-900 text-amber-900" />
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       <AnimatePresence mode="wait">
@@ -1558,8 +1603,36 @@ function QuestionRoom({
               )}
             </div>
 
-            {/* Question Timer at top corner right side */}
+            {/* Bookmark & Question Timer at top corner right side */}
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                data-testid="button-bookmark-question"
+                onClick={() => onToggleBookmark?.(question.questionId)}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-bold transition-all cursor-pointer ${
+                  bookmarkedIds.includes(question.questionId)
+                    ? "bg-amber-100 text-amber-900 border border-amber-300 shadow-xs"
+                    : "bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200"
+                }`}
+                title={
+                  bookmarkedIds.includes(question.questionId)
+                    ? "Remove bookmark (Press B)"
+                    : "Bookmark question (Press B)"
+                }
+              >
+                {bookmarkedIds.includes(question.questionId) ? (
+                  <>
+                    <BookmarkCheck className="h-3.5 w-3.5 fill-amber-500 text-amber-700" />
+                    <span>Bookmarked</span>
+                  </>
+                ) : (
+                  <>
+                    <Bookmark className="h-3.5 w-3.5 text-slate-500" />
+                    <span className="hidden sm:inline">Bookmark</span>
+                  </>
+                )}
+              </button>
+
               <span
                 className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-bold font-mono tracking-tight transition-colors ${
                   timeLimitSeconds > 0
@@ -1892,6 +1965,8 @@ function Completion({
   batchName,
   session,
   timeLimitSeconds = 0,
+  bookmarkedIds = [],
+  onToggleBookmark,
   result,
   onRetry,
   onRestart,
@@ -1900,11 +1975,13 @@ function Completion({
   batchName?: string;
   session: { testId: string; questions: InfinitePracticeQuestion[] };
   timeLimitSeconds?: number;
+  bookmarkedIds?: string[];
+  onToggleBookmark?: (questionId: string) => void;
   result: InfinitePracticeTestSolution;
   onRetry: () => void;
   onRestart: () => void;
 }) {
-  const [filterTab, setFilterTab] = useState<"ALL" | "CORRECT" | "INCORRECT" | "SKIPPED">("ALL");
+  const [filterTab, setFilterTab] = useState<"ALL" | "CORRECT" | "INCORRECT" | "SKIPPED" | "BOOKMARKED">("ALL");
   const [shareFeedback, setShareFeedback] = useState("");
   const [highlightedQNum, setHighlightedQNum] = useState<number | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -2048,8 +2125,9 @@ function Completion({
 
   const filteredQuestions = useMemo(() => {
     if (filterTab === "ALL") return questionSolutions;
+    if (filterTab === "BOOKMARKED") return questionSolutions.filter((q) => bookmarkedIds.includes(q.questionId));
     return questionSolutions.filter((q) => getQuestionStatus(q) === filterTab);
-  }, [questionSolutions, filterTab]);
+  }, [questionSolutions, filterTab, bookmarkedIds]);
 
   const handleJumpToQuestion = (qNumber: number, status: "CORRECT" | "INCORRECT" | "SKIPPED") => {
     if (filterTab !== "ALL" && filterTab !== status) {
@@ -2367,6 +2445,9 @@ function Completion({
               <span className="inline-flex items-center gap-1">
                 <span className="h-2 w-2 rounded-full bg-slate-400" /> Skipped
               </span>
+              <span className="inline-flex items-center gap-1">
+                <Bookmark className="h-3 w-3 fill-amber-500 text-amber-600" /> Bookmarked
+              </span>
             </div>
           </div>
           <div className="mt-3.5 flex flex-wrap gap-2">
@@ -2375,6 +2456,7 @@ function Completion({
               const qNum = item.questionNumber ?? (trueIndex >= 0 ? trueIndex + 1 : idx + 1);
               const qStatus = getQuestionStatus(item);
               const isPillHighlighted = highlightedQNum === qNum;
+              const isMarkedBookmarked = bookmarkedIds.includes(item.questionId);
               const pillStyles =
                 qStatus === "CORRECT"
                   ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300"
@@ -2388,12 +2470,20 @@ function Completion({
                   type="button"
                   data-testid={`palette-pill-${qNum}`}
                   onClick={() => handleJumpToQuestion(qNum, qStatus)}
-                  title={`Jump to Question ${qNum} (${qStatus.toLowerCase()})`}
-                  className={`flex h-9 w-9 items-center justify-center rounded-xl border text-xs font-bold transition-all shadow-2xs hover:scale-105 active:scale-95 ${
+                  title={`Jump to Question ${qNum} (${qStatus.toLowerCase()})${isMarkedBookmarked ? " • Bookmarked" : ""}`}
+                  className={`relative flex h-9 w-9 items-center justify-center rounded-xl border text-xs font-bold transition-all shadow-2xs hover:scale-105 active:scale-95 ${
                     isPillHighlighted ? "ring-2 ring-indigo-500 ring-offset-2 scale-105 " : ""
                   }${pillStyles}`}
                 >
-                  {qNum}
+                  <span>{qNum}</span>
+                  {isMarkedBookmarked && (
+                    <span
+                      className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-400 text-amber-950 shadow-xs"
+                      title="Bookmarked"
+                    >
+                      <Bookmark className="h-2 w-2 fill-amber-900 text-amber-900" />
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -2427,6 +2517,13 @@ function Completion({
                 count: totalSkipped,
                 icon: MinusCircle,
                 activeColor: "text-slate-500",
+              },
+              {
+                key: "BOOKMARKED",
+                label: "Bookmarked",
+                count: bookmarkedIds.length,
+                icon: BookmarkCheck,
+                activeColor: "text-amber-600",
               },
             ] as const
           ).map((tab) => {
@@ -2474,6 +2571,8 @@ function Completion({
               ? "Flawless! You didn't get any questions incorrect in this set. 🎉"
               : filterTab === "SKIPPED"
               ? "You attempted every single question in this set! 🎯"
+              : filterTab === "BOOKMARKED"
+              ? "No questions bookmarked in this test. Bookmark questions during your practice or review to revisit them!"
               : "No questions found."}
           </p>
           <button
@@ -2557,6 +2656,29 @@ function Completion({
                         {formatDuration(item.timeTaken)}
                       </span>
                     )}
+                    <button
+                      type="button"
+                      data-testid={`button-bookmark-solution-${qNum}`}
+                      onClick={() => onToggleBookmark?.(item.questionId)}
+                      className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold transition-all cursor-pointer ${
+                        bookmarkedIds.includes(item.questionId)
+                          ? "bg-amber-100 text-amber-900 border border-amber-300 shadow-xs"
+                          : "bg-slate-100 text-slate-500 hover:bg-slate-200 border border-slate-200"
+                      }`}
+                      title={bookmarkedIds.includes(item.questionId) ? "Remove bookmark" : "Bookmark question"}
+                    >
+                      {bookmarkedIds.includes(item.questionId) ? (
+                        <>
+                          <BookmarkCheck className="h-3.5 w-3.5 fill-amber-500 text-amber-700" />
+                          <span>Bookmarked</span>
+                        </>
+                      ) : (
+                        <>
+                          <Bookmark className="h-3.5 w-3.5 text-slate-400" />
+                          <span>Bookmark</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
 
@@ -2905,8 +3027,15 @@ export default function InfinitePractice() {
   const [session, setSession] = useState<{ testId: string; questions: InfinitePracticeQuestion[] } | null>(null);
   const [timeLimitPerQuestion, setTimeLimitPerQuestion] = useState(0);
   const [testResult, setTestResult] = useState<InfinitePracticeTestSolution | null>(null);
+  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
   const matchedBatch = INFINITE_PRACTICE_BATCHES.find((b) => b.id === batchId || b.name === batchId);
   const batchName = matchedBatch?.name || "Infinite Practice";
+
+  const toggleBookmark = (questionId: string) => {
+    setBookmarkedIds((prev) =>
+      prev.includes(questionId) ? prev.filter((id) => id !== questionId) : [...prev, questionId],
+    );
+  };
 
   const sharedCode = useMemo(() => {
     if (typeof window === "undefined") return null;
@@ -2977,6 +3106,8 @@ export default function InfinitePractice() {
             batchName={batchName}
             session={session}
             timeLimitSeconds={timeLimitPerQuestion}
+            bookmarkedIds={bookmarkedIds}
+            onToggleBookmark={toggleBookmark}
             onComplete={(result) => {
               setTestResult(result);
               setRoomState("complete");
@@ -2996,6 +3127,8 @@ export default function InfinitePractice() {
             batchName={batchName}
             session={session}
             timeLimitSeconds={timeLimitPerQuestion}
+            bookmarkedIds={bookmarkedIds}
+            onToggleBookmark={toggleBookmark}
             result={testResult}
             onRetry={retryCurrentTest}
             onRestart={() => {
