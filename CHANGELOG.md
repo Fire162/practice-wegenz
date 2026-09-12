@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+* Resolved empty solution evaluation and zero-score fallback when submitting tests started from saved bookmarks or shared test codes ([#3](https://github.com/Fire162/practice-wegenz/pull/3)).
+
+### Added
+* Saved Bookmarks Vault modal with subject filtering, search, step-by-step KaTeX explanations, and direct practice session launcher.
+* Dual practice modes: Exam Mode (standard flow) and Quiz Mode (instant KaTeX explanations, inline video popups, and +4/-1 answer feedback).
+* Smart keyboard navigation (`ArrowLeft`/`ArrowRight`, `ArrowUp`/`ArrowDown`, `1, 2, 3, 4`, and `B` for bookmark) with active input protection.
+* Exam vs. Quiz mode selector directly inside the Saved Bookmarks Hub.
+
 ## [1.1.0] - 2026-09-09 17:40 IST
 
 ### Added

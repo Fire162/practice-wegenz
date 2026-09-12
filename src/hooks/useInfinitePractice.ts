@@ -385,6 +385,13 @@ export function useStartInfinitePractice(batchId: string) {
 const localSessionQuestions = new Map<string, InfinitePracticeQuestion[]>();
 const localSessionAnswers = new Map<string, SubmitInfinitePracticeInput[]>();
 
+export function registerLocalPracticeSession(
+  testId: string,
+  questions: InfinitePracticeQuestion[],
+) {
+  localSessionQuestions.set(testId, questions);
+}
+
 export function useSubmitInfinitePractice(testId: string) {
   return useMutation({
     mutationFn: async (
@@ -396,10 +403,17 @@ export function useSubmitInfinitePractice(testId: string) {
   });
 }
 
-export function useInfinitePracticeSolution(testId: string) {
+export function useInfinitePracticeSolution(
+  testId: string,
+  fallbackQuestions?: InfinitePracticeQuestion[],
+) {
   return useMutation({
     mutationFn: async (): Promise<InfinitePracticeTestSolution> => {
-      const questions = localSessionQuestions.get(testId) || [];
+      let questions = localSessionQuestions.get(testId) || [];
+      if (questions.length === 0 && fallbackQuestions && fallbackQuestions.length > 0) {
+        localSessionQuestions.set(testId, fallbackQuestions);
+        questions = fallbackQuestions;
+      }
       const answers = localSessionAnswers.get(testId) || [];
       const answerMap = new Map(answers.map((a) => [a.questionId, a]));
 
