@@ -9,6 +9,8 @@ import {
   ArrowUp,
   Award,
   BookOpen,
+  Bookmark,
+  BookmarkCheck,
   Check,
   CheckCircle2,
   CircleHelp,
@@ -25,11 +27,13 @@ import {
   RotateCcw,
   Scale,
   Share2,
+  Search,
   ShieldAlert,
   Sliders,
   Sparkles,
   Target,
   Timer,
+  Trash2,
   Trophy,
   Users,
   X,
@@ -38,6 +42,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageMeta } from "@/hooks/usePageMeta";
+import { useBookmarks } from "@/hooks/useBookmarks";
 import {
   INFINITE_PRACTICE_BATCHES,
   useGetSharedInfinitePractice,
@@ -405,6 +410,7 @@ function SelectionPanel({
   onStarted: (
     session: { testId: string; questions: InfinitePracticeQuestion[] },
     timeLimitSeconds: number,
+    mode: "EXAM" | "QUIZ",
   ) => void;
 }) {
   const subjectsQuery = useInfinitePracticeSubjects(batchId);
@@ -414,6 +420,7 @@ function SelectionPanel({
 
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>([]);
   const [chapterIds, setChapterIds] = useState<string[]>([]);
+  const [practiceMode, setPracticeMode] = useState<"EXAM" | "QUIZ">("EXAM");
   
   // Total questions count (1 - 100)
   const [totalQuestionCount, setTotalQuestionCount] = useState<number>(15);
@@ -642,7 +649,7 @@ function SelectionPanel({
       },
       {
         onSuccess: (sessionData) => {
-          onStarted(sessionData, timeLimit);
+          onStarted(sessionData, timeLimit, practiceMode);
         },
       },
     );
@@ -656,6 +663,7 @@ function SelectionPanel({
         questions: sharedQuery.data.questions,
       },
       sharedQuery.data.timeLimitSeconds,
+      "EXAM",
     );
   };
 
@@ -973,6 +981,53 @@ function SelectionPanel({
           </p>
 
           <div className="mt-6 space-y-5 border-t border-indigo-200/70 pt-5">
+            {/* Practice Mode */}
+            <fieldset>
+              <legend className="mb-2.5 text-sm font-bold text-indigo-950">Practice Mode</legend>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  data-testid="mode-exam"
+                  aria-pressed={practiceMode === "EXAM"}
+                  onClick={() => setPracticeMode("EXAM")}
+                  className={`flex flex-col items-start rounded-2xl border p-3 text-left transition-all cursor-pointer ${
+                    practiceMode === "EXAM"
+                      ? "border-indigo-600 bg-indigo-600 text-white shadow-xs"
+                      : "border-indigo-200 bg-white text-slate-700 hover:border-indigo-300"
+                  }`}
+                >
+                  <span className="text-xs font-black uppercase tracking-wider">Exam Mode</span>
+                  <span
+                    className={`mt-0.5 text-[11px] leading-tight ${
+                      practiceMode === "EXAM" ? "text-indigo-100" : "text-slate-500"
+                    }`}
+                  >
+                    Solutions at test end
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  data-testid="mode-quiz"
+                  aria-pressed={practiceMode === "QUIZ"}
+                  onClick={() => setPracticeMode("QUIZ")}
+                  className={`flex flex-col items-start rounded-2xl border p-3 text-left transition-all cursor-pointer ${
+                    practiceMode === "QUIZ"
+                      ? "border-amber-600 bg-amber-600 text-white shadow-xs"
+                      : "border-indigo-200 bg-white text-slate-700 hover:border-indigo-300"
+                  }`}
+                >
+                  <span className="text-xs font-black uppercase tracking-wider">Quiz Mode</span>
+                  <span
+                    className={`mt-0.5 text-[11px] leading-tight ${
+                      practiceMode === "QUIZ" ? "text-amber-100" : "text-slate-500"
+                    }`}
+                  >
+                    Instant answer & solution
+                  </span>
+                </button>
+              </div>
+            </fieldset>
+
             {/* Difficulty */}
             <fieldset>
               <legend className="mb-3 text-sm font-bold text-indigo-950">Difficulty</legend>
@@ -1295,452 +1350,6 @@ function SelectionPanel({
   );
 }
 
-function QuestionRoom({
-  batchId,
-  batchName,
-  session,
-  timeLimitSeconds = 0,
-  onComplete,
-  onExit,
-}: {
-  batchId: string;
-  batchName?: string;
-  session: { testId: string; questions: InfinitePracticeQuestion[] };
-  timeLimitSeconds?: number;
-  onComplete: (result: InfinitePracticeTestSolution) => void;
-  onExit: () => void;
-}) {
-  const [index, setIndex] = useState(0);
-  const [selected, setSelected] = useState<number[]>([]);
-  const [answers, setAnswers] = useState<Record<string, SubmitInfinitePracticeInput>>({});
-  const [submitError, setSubmitError] = useState("");
-  const [shareFeedback, setShareFeedback] = useState("");
-  const submitTest = useSubmitInfinitePractice(session.testId);
-  const loadSolution = useInfinitePracticeSolution(session.testId);
-  const shareTest = useShareInfinitePractice();
-  const startedAt = useRef(Date.now());
-  const question = session.questions[index];
-  const progress = (index / session.questions.length) * 100;
-
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-
-  useEffect(() => {
-    startedAt.current = Date.now();
-    setElapsedSeconds(0);
-    setSelected(answers[session.questions[index]?.questionId]?.markedSolutions ?? []);
-    setSubmitError("");
-
-    const interval = setInterval(() => {
-      setElapsedSeconds(Math.floor((Date.now() - startedAt.current) / 1000));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [answers, index, session.questions]);
-
-  // Auto skip/advance if time limit is reached for question
-  useEffect(() => {
-    if (timeLimitSeconds > 0 && elapsedSeconds >= timeLimitSeconds) {
-      if (submitTest.isPending || loadSolution.isPending) return;
-      const currentAns = makeAnswer(selected.length > 0 ? "ATTEMPTED" : "SKIPPED");
-      if (currentAns) {
-        const nextAnswers = { ...answers, [currentAns.questionId]: currentAns };
-        setAnswers(nextAnswers);
-        if (index < session.questions.length - 1) {
-          setIndex((v) => v + 1);
-        } else {
-          submitCurrentTest(nextAnswers);
-        }
-      }
-    }
-  }, [elapsedSeconds, timeLimitSeconds]);
-
-  const makeAnswer = (
-    status: SubmitInfinitePracticeInput["status"] = "ATTEMPTED",
-  ): SubmitInfinitePracticeInput | null => {
-    if (!question) return null;
-    if (status === "ATTEMPTED" && selected.length === 0) return null;
-    return {
-      questionId: question.questionId,
-      status,
-      timeTaken: Math.max(1000, Date.now() - startedAt.current),
-      chapterId: question.chapterId,
-      questionNumber: index + 1,
-      markedSolutions: status === "SKIPPED" ? [] : selected,
-      difficulty: question.difficulty,
-      type: question.type,
-    };
-  };
-
-  const completeAnswers = (currentAnswers: Record<string, SubmitInfinitePracticeInput>) =>
-    session.questions.map((item, itemIndex) => (
-      currentAnswers[item.questionId] ?? {
-        questionId: item.questionId,
-        status: "SKIPPED" as const,
-        timeTaken: 0,
-        chapterId: item.chapterId,
-        questionNumber: itemIndex + 1,
-        markedSolutions: [],
-        difficulty: item.difficulty,
-        type: item.type,
-      }
-    ));
-
-  const submitCurrentTest = async (currentAnswers: Record<string, SubmitInfinitePracticeInput>) => {
-    if (submitTest.isPending || loadSolution.isPending) return;
-    setSubmitError("");
-    try {
-      await submitTest.mutateAsync({ questionsResponse: completeAnswers(currentAnswers) });
-      const result = await loadSolution.mutateAsync();
-      onComplete(result);
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : "Could not submit this test.");
-    }
-  };
-
-  const next = async () => {
-    const answer = makeAnswer();
-    if (!answer) return;
-    const nextAnswers = { ...answers, [answer.questionId]: answer };
-    setAnswers(nextAnswers);
-    if (index < session.questions.length - 1) {
-      setIndex((value) => value + 1);
-      return;
-    }
-    await submitCurrentTest(nextAnswers);
-  };
-
-  const previous = () => {
-    if (index === 0 || submitTest.isPending || loadSolution.isPending) return;
-    const answer = makeAnswer();
-    if (answer) setAnswers((current) => ({ ...current, [answer.questionId]: answer }));
-    setIndex((value) => value - 1);
-  };
-
-  const skip = async () => {
-    const answer = makeAnswer("SKIPPED");
-    if (!answer) return;
-    const nextAnswers = { ...answers, [answer.questionId]: answer };
-    setAnswers(nextAnswers);
-    if (index < session.questions.length - 1) {
-      setIndex((value) => value + 1);
-      return;
-    }
-    await submitCurrentTest(nextAnswers);
-  };
-
-  const submit = async () => {
-    const answer = makeAnswer(selected.length > 0 ? "ATTEMPTED" : "SKIPPED");
-    const nextAnswers = answer
-      ? { ...answers, [answer.questionId]: answer }
-      : answers;
-    setAnswers(nextAnswers);
-    await submitCurrentTest(nextAnswers);
-  };
-
-  const handleShareInRoom = async () => {
-    try {
-      const subjectNames = Array.from(new Set(session.questions.map((q) => q.subjectName).filter(Boolean))) as string[];
-      const res = await shareTest.mutateAsync({
-        batchId,
-        batchName,
-        subjectNames,
-        timeLimitSeconds,
-        questions: session.questions,
-      });
-      const shareUrl = `${window.location.origin}/practice/${batchId}?test=${res.code}`;
-
-      if (navigator.share) {
-        await navigator.share({
-          title: `Wegenz Infinite Practice Challenge (${session.questions.length} Questions)`,
-          text: `Take this ${session.questions.length}-question practice challenge on Wegenz!`,
-          url: shareUrl,
-        }).catch(() => {});
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        setShareFeedback("Copied test link!");
-        setTimeout(() => setShareFeedback(""), 3000);
-      }
-    } catch {
-      setShareFeedback("Could not generate share link");
-      setTimeout(() => setShareFeedback(""), 3000);
-    }
-  };
-
-  if (!question) return null;
-
-  const secondsRemaining = timeLimitSeconds > 0 ? Math.max(0, timeLimitSeconds - elapsedSeconds) : 0;
-  const isTimeRunningOut = timeLimitSeconds > 0 && secondsRemaining <= 15;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="mx-auto max-w-4xl"
-      data-testid="panel-practice-question"
-    >
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <button
-            type="button"
-            data-testid="button-leave-practice"
-            onClick={onExit}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer"
-            title="Exit practice"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <div className="min-w-0">
-            <p className="truncate text-xs font-bold uppercase tracking-[0.14em] text-indigo-600">Infinite Practice</p>
-            <p className="text-sm font-semibold text-slate-700">
-              Question {index + 1} <span className="font-normal text-slate-400">of {session.questions.length}</span>
-            </p>
-          </div>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          {/* In-Room Share Button */}
-          <button
-            type="button"
-            onClick={handleShareInRoom}
-            disabled={shareTest.isPending}
-            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
-            title="Share this test set with friends"
-          >
-            <Share2 className="h-3.5 w-3.5 text-indigo-600" />
-            <span className="hidden sm:inline">{shareFeedback || "Share"}</span>
-          </button>
-
-          <span className="hidden items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-600 sm:inline-flex">
-            <Target className="h-3.5 w-3.5 text-indigo-600" /> {question.subjectName || "JEE 2026"}
-          </span>
-          <button
-            data-testid="button-submit-test"
-            disabled={submitTest.isPending || loadSolution.isPending}
-            onClick={submit}
-            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 text-xs font-bold text-indigo-700 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {submitTest.isPending || loadSolution.isPending
-              ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Submitting...</>
-              : "Submit test"}
-          </button>
-        </div>
-      </div>
-      <div className="mb-5 h-1.5 overflow-hidden rounded-full bg-slate-200">
-        <motion.div animate={{ width: `${progress}%` }} className="h-full rounded-full bg-indigo-600" />
-      </div>
-
-      <AnimatePresence mode="wait">
-        <motion.article
-          key={question.questionId}
-          initial={{ opacity: 0, x: 10 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -10 }}
-          className="practice-question-canvas rounded-3xl border border-slate-200 p-5 shadow-sm sm:p-8"
-        >
-          <div className="mb-6 flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="truncate text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
-                {question.chapterName || "Practice question"}
-              </span>
-              {question.type === 2 && (
-                <span className="rounded-md bg-purple-50 px-2 py-0.5 text-[11px] font-bold text-purple-700">
-                  Multiple Correct
-                </span>
-              )}
-              {question.type === 8 && (
-                <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">
-                  Comprehension
-                </span>
-              )}
-              {(question.type === 3 || (!question.options || question.options.length === 0)) && (
-                <span className="rounded-md bg-sky-50 px-2 py-0.5 text-[11px] font-bold text-sky-700">
-                  Numerical / Integer
-                </span>
-              )}
-            </div>
-
-            {/* Question Timer at top corner right side */}
-            <div className="flex items-center gap-2">
-              <span
-                className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-bold font-mono tracking-tight transition-colors ${
-                  timeLimitSeconds > 0
-                    ? isTimeRunningOut
-                      ? "bg-rose-100 text-rose-700 animate-pulse border border-rose-200"
-                      : "bg-amber-50 text-amber-800 border border-amber-200"
-                    : "bg-slate-100 text-slate-700 border border-slate-200"
-                }`}
-                title={timeLimitSeconds > 0 ? `Time left for this question (${formatClock(secondsRemaining)})` : "Time spent on this question"}
-              >
-                <Timer className={`h-3.5 w-3.5 ${isTimeRunningOut ? "text-rose-600 animate-spin" : "text-slate-500"}`} />
-                {timeLimitSeconds > 0 ? (
-                  <span>{formatClock(secondsRemaining)} / {formatClock(timeLimitSeconds)}</span>
-                ) : (
-                  <span>{formatClock(elapsedSeconds)}</span>
-                )}
-              </span>
-              <span className="shrink-0 text-xs text-slate-400">{question.typeTitle || "Question"}</span>
-            </div>
-          </div>
-
-          {/* Parent Passage / Context if Comprehension Question */}
-          {question.parentQuestion?.content && (
-            <div className="mb-6 rounded-2xl border border-amber-200/80 bg-amber-50/50 p-4 sm:p-5">
-              <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-800">
-                <span>📖 Reading Passage / Context</span>
-              </div>
-              <HtmlContent
-                html={question.parentQuestion.content}
-                className="text-sm leading-relaxed text-slate-800 [&_img]:my-3 [&_img]:max-h-[300px]"
-              />
-            </div>
-          )}
-
-          <HtmlContent
-            html={question.content || question.plainQuestionText}
-            className="mb-7 text-[17px] leading-8 text-slate-900 [&_img]:my-4 [&_img]:max-h-[420px]"
-            testId="text-practice-question"
-          />
-
-          {/* Options List for Option-based Questions */}
-          {question.options && question.options.length > 0 ? (
-            <div className="space-y-3" role="radiogroup" aria-label={`Answers for question ${index + 1}`}>
-              {question.options.map((option, optionIndex) => {
-                const isSelected = selected.includes(optionIndex + 1);
-                return (
-                  <button
-                    key={`${question.questionId}-${optionIndex}`}
-                    data-testid={`button-option-${optionIndex + 1}`}
-                    role={question.type === 2 ? "checkbox" : "radio"}
-                    aria-checked={isSelected}
-                    disabled={submitTest.isPending || loadSolution.isPending}
-                    onClick={() =>
-                      setSelected((current) =>
-                        question.type === 2
-                          ? current.includes(optionIndex + 1)
-                            ? current.filter((value) => value !== optionIndex + 1)
-                            : [...current, optionIndex + 1]
-                          : [optionIndex + 1],
-                      )
-                    }
-                    className={`flex w-full items-start gap-3 rounded-2xl border p-4 text-left transition-all disabled:cursor-default ${
-                      isSelected
-                        ? "border-indigo-500 bg-indigo-50"
-                        : "border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50"
-                    }`}
-                  >
-                    <span
-                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
-                        isSelected
-                          ? "bg-indigo-600 text-white"
-                          : question.type === 2
-                          ? "border-2 border-slate-300 bg-white text-slate-600"
-                          : "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      {question.type === 2 && isSelected ? "✓" : String.fromCharCode(65 + optionIndex)}
-                    </span>
-                    <HtmlContent
-                      html={option.text}
-                      className="min-w-0 flex-1 pt-0.5 text-sm leading-6 text-slate-800 [&_p]:mb-0"
-                    />
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            /* Numeric / Integer Keypad & Input Box */
-            <div className="my-6 rounded-2xl border border-sky-200 bg-sky-50/40 p-5">
-              <p className="text-xs font-bold uppercase tracking-wider text-sky-800 mb-2">
-                Enter Numerical / Integer Value:
-              </p>
-              <div className="flex items-center gap-3">
-                <input
-                  type="number"
-                  step="any"
-                  placeholder="e.g. 4.5 or 12"
-                  value={selected[0] !== undefined ? selected[0] : ""}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSelected(val === "" ? [] : [Number(val)]);
-                  }}
-                  className="h-11 w-48 rounded-xl border border-slate-300 bg-white px-3.5 text-base font-semibold text-slate-900 focus:border-indigo-500 focus:outline-none"
-                />
-                {selected.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setSelected([])}
-                    className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-600 hover:bg-slate-50"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          <div className="mt-7 flex flex-col gap-4 border-t border-slate-100 pt-5">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs text-slate-400">
-                {question.type === 2
-                  ? "Select all correct options"
-                  : question.type === 3 || (!question.options || question.options.length === 0)
-                  ? "Type your numerical answer"
-                  : "Select an option"}
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  data-testid="button-previous-question"
-                  disabled={index === 0 || submitTest.isPending || loadSolution.isPending}
-                  onClick={previous}
-                  className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" /> Previous
-                </button>
-                <button
-                  data-testid="button-skip-question"
-                  disabled={submitTest.isPending || loadSolution.isPending}
-                  onClick={skip}
-                  className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  Skip question
-                </button>
-                <button
-                  data-testid={
-                    index === session.questions.length - 1
-                      ? "button-submit-test-final"
-                      : "button-next-question"
-                  }
-                  disabled={selected.length === 0 || submitTest.isPending || loadSolution.isPending}
-                  onClick={next}
-                  className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-4 text-xs font-bold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
-                >
-                  {submitTest.isPending || loadSolution.isPending ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Submitting...
-                    </>
-                  ) : (
-                    <>
-                      {index === session.questions.length - 1 ? "Submit & finish" : "Next question"}{" "}
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-            {submitError && (
-              <div
-                className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700"
-                data-testid="status-practice-submit-error"
-              >
-                {submitError}
-              </div>
-            )}
-          </div>
-        </motion.article>
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
 type VideoType = "youtube" | "dash" | "direct";
 
 interface ActiveVideoModalData {
@@ -1887,11 +1496,1423 @@ function DirectPlayer({ url }: { url: string }) {
   );
 }
 
+function VideoModal({
+  activeVideo,
+  onClose,
+}: {
+  activeVideo: ActiveVideoModalData | null;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    if (!activeVideo) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [activeVideo, onClose]);
+
+  return (
+    <AnimatePresence>
+      {activeVideo && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0, y: 16 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 16 }}
+            transition={{ type: "spring", duration: 0.25 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative flex w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 shadow-2xl"
+          >
+            {/* Top Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3 sm:px-6">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
+                    activeVideo.type === "youtube"
+                      ? "bg-red-600/20 text-red-500"
+                      : activeVideo.type === "dash"
+                      ? "bg-purple-600/20 text-purple-400"
+                      : "bg-indigo-600/20 text-indigo-400"
+                  }`}
+                >
+                  <Play
+                    className={`h-4 w-4 ${
+                      activeVideo.type === "youtube" ? "fill-red-500" : "fill-current"
+                    }`}
+                  />
+                </div>
+                <div className="min-w-0">
+                  <p
+                    className={`text-[11px] font-bold uppercase tracking-wider ${
+                      activeVideo.type === "youtube"
+                        ? "text-red-400"
+                        : activeVideo.type === "dash"
+                        ? "text-purple-400"
+                        : "text-indigo-400"
+                    }`}
+                  >
+                    {activeVideo.type === "youtube"
+                      ? "YouTube Video Solution"
+                      : activeVideo.type === "dash"
+                      ? "MPEG-DASH Stream"
+                      : "Video Solution"}
+                  </p>
+                  <h4 className="truncate text-sm font-semibold text-white sm:text-base">
+                    {activeVideo.title}
+                  </h4>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={activeVideo.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-slate-700 hover:text-white"
+                  title={activeVideo.type === "youtube" ? "Open in YouTube" : "Open URL"}
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">
+                    {activeVideo.type === "youtube" ? "Open in YouTube" : "Open URL"}
+                  </span>
+                </a>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  data-testid="button-close-video-modal"
+                  className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 text-slate-400 transition hover:bg-slate-700 hover:text-white cursor-pointer"
+                  title="Close"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Video Player according to format */}
+            {activeVideo.type === "youtube" && activeVideo.videoId ? (
+              <div className="relative w-full aspect-video bg-black">
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${activeVideo.videoId}?autoplay=1&rel=0&modestbranding=1`}
+                  title={activeVideo.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                  allowFullScreen
+                  className="absolute inset-0 h-full w-full border-0"
+                />
+              </div>
+            ) : activeVideo.type === "dash" ? (
+              <DashPlayer url={activeVideo.url} />
+            ) : (
+              <DirectPlayer url={activeVideo.url} />
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function BookmarksModal({
+  isOpen,
+  onClose,
+  onStartPractice,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onStartPractice: (questions: InfinitePracticeQuestion[]) => void;
+}) {
+  const { bookmarks, removeBookmark, clearBookmarks } = useBookmarks();
+  const [selectedSubject, setSelectedSubject] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [expandedSolutions, setExpandedSolutions] = useState<Record<string, boolean>>({});
+  const [activeVideo, setActiveVideo] = useState<ActiveVideoModalData | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  const subjects = useMemo(() => {
+    const list = Array.from(
+      new Set(bookmarks.map((b) => b.subjectName).filter(Boolean)),
+    ) as string[];
+    return ["ALL", ...list];
+  }, [bookmarks]);
+
+  const filteredBookmarks = useMemo(() => {
+    return bookmarks.filter((b) => {
+      const matchSubject =
+        selectedSubject === "ALL" ||
+        b.subjectName?.toLowerCase() === selectedSubject.toLowerCase();
+      const matchSearch =
+        !searchQuery.trim() ||
+        (b.plainQuestionText &&
+          b.plainQuestionText.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (b.chapterName &&
+          b.chapterName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (b.content && b.content.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchSubject && matchSearch;
+    });
+  }, [bookmarks, selectedSubject, searchQuery]);
+
+  const toggleSolution = (qId: string) => {
+    setExpandedSolutions((prev) => ({ ...prev, [qId]: !prev[qId] }));
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-md"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0, y: 16 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 16 }}
+          transition={{ type: "spring", duration: 0.25 }}
+          onClick={(e) => e.stopPropagation()}
+          className="relative flex flex-col w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-200">
+                <Bookmark className="h-5 w-5 fill-amber-500 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 sm:text-lg flex items-center gap-2">
+                  Saved Bookmarks
+                  <span className="rounded-full bg-amber-100 text-amber-900 px-2.5 py-0.5 text-xs font-bold">
+                    {bookmarks.length}
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Questions you saved during practice for revision and re-testing
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-700 transition cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Controls Bar: Subject Tabs & Search */}
+          <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Subject filter tabs */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+              {subjects.map((subj) => (
+                <button
+                  key={subj}
+                  type="button"
+                  onClick={() => setSelectedSubject(subj)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                    selectedSubject === subj
+                      ? "bg-indigo-600 text-white shadow-xs"
+                      : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                  }`}
+                >
+                  {subj === "ALL" ? "All Subjects" : subj}
+                  {subj === "ALL"
+                    ? ` (${bookmarks.length})`
+                    : ` (${bookmarks.filter((b) => b.subjectName?.toLowerCase() === subj.toLowerCase()).length})`}
+                </button>
+              ))}
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search questions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-xs font-medium text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Bookmarks List Canvas */}
+          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+            {filteredBookmarks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-amber-50 text-amber-500 border border-amber-200 mb-4">
+                  <Bookmark className="h-8 w-8 text-amber-500" />
+                </div>
+                <h4 className="text-base font-bold text-slate-800">
+                  {bookmarks.length === 0 ? "No saved bookmarks yet" : "No matching questions"}
+                </h4>
+                <p className="mt-1.5 max-w-sm text-xs text-slate-500 leading-relaxed">
+                  {bookmarks.length === 0
+                    ? "While practising questions, click the Bookmark button or press 'B' on any question to save it here for later revision."
+                    : "Try selecting another subject or clearing your search query."}
+                </p>
+              </div>
+            ) : (
+              filteredBookmarks.map((qItem, qIdx) => {
+                const isExpanded = Boolean(expandedSolutions[qItem.questionId]);
+                const hasVideo = qItem.solutions?.some((s) => s.videoSolution?.url);
+
+                return (
+                  <div
+                    key={qItem.questionId}
+                    className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs transition hover:border-slate-300"
+                  >
+                    {/* Card Top Metadata */}
+                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3 mb-3">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="rounded-lg bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700">
+                          {qItem.subjectName || "Subject"}
+                        </span>
+                        <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700">
+                          {qItem.chapterName || "Chapter"}
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          #{qIdx + 1}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {hasVideo && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const solWithVid = qItem.solutions.find((s) => s.videoSolution?.url);
+                              if (!solWithVid?.videoSolution?.url) return;
+                              const url = solWithVid.videoSolution.url;
+                              const vType = getVideoType(url);
+                              if (vType) {
+                                setActiveVideo({
+                                  type: vType,
+                                  videoId: getYouTubeId(url) || undefined,
+                                  url,
+                                  title: `${qItem.chapterName || "Question"} Solution`,
+                                });
+                              }
+                            }}
+                            className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1 text-[11px] font-bold text-indigo-700 hover:bg-indigo-100 transition cursor-pointer"
+                          >
+                            <Play className="h-3 w-3 fill-indigo-600" /> Video
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeBookmark(qItem.questionId)}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 transition cursor-pointer"
+                          title="Remove bookmark"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Question Content */}
+                    <HtmlContent
+                      html={qItem.content || qItem.plainQuestionText}
+                      className="text-sm leading-relaxed text-slate-900 mb-3 [&_img]:max-h-[220px]"
+                    />
+
+                    {/* Options Preview */}
+                    {qItem.options && qItem.options.length > 0 && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 my-2">
+                        {qItem.options.map((opt, oIdx) => (
+                          <div
+                            key={oIdx}
+                            className={`flex items-start gap-2 rounded-xl p-2.5 text-xs border ${
+                              isExpanded && opt.isCorrect
+                                ? "border-emerald-400 bg-emerald-50/80 text-emerald-950 font-medium"
+                                : "border-slate-100 bg-slate-50/60 text-slate-700"
+                            }`}
+                          >
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded font-bold bg-white border border-slate-200 text-[10px]">
+                              {String.fromCharCode(65 + oIdx)}
+                            </span>
+                            <HtmlContent html={opt.text} className="min-w-0 flex-1 [&_p]:mb-0" />
+                            {isExpanded && opt.isCorrect && (
+                              <span className="shrink-0 text-emerald-600 font-bold text-[10px]">
+                                Correct
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Numerical Expected Answer */}
+                    {qItem.numericAnswer !== undefined && qItem.numericAnswer !== null && (
+                      <div className="my-2 inline-flex items-center gap-2 rounded-xl bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-900 border border-sky-200">
+                        <span>Answer value:</span>
+                        <code className="font-mono bg-white px-2 py-0.5 rounded border border-sky-300 font-bold">
+                          {String(qItem.numericAnswer)}
+                        </code>
+                      </div>
+                    )}
+
+                    {/* Expand/Collapse Solution Button */}
+                    {qItem.solutions && qItem.solutions.length > 0 && (
+                      <div className="mt-3 border-t border-slate-100 pt-2.5 flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => toggleSolution(qItem.questionId)}
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition cursor-pointer"
+                        >
+                          <Sparkles className="h-3.5 w-3.5" />
+                          <span>{isExpanded ? "Hide Solution" : "View Step-by-Step Solution"}</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Expandable KaTeX Explanation */}
+                    {isExpanded && qItem.solutions && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="mt-3 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3.5 text-xs"
+                      >
+                        <p className="font-bold text-indigo-900 mb-1.5 uppercase tracking-wider text-[10px]">
+                          Explanation:
+                        </p>
+                        {qItem.solutions.map((sol, sIdx) => (
+                          <div key={sIdx}>
+                            {sol.text && (
+                              <HtmlContent
+                                html={sol.text}
+                                className="leading-relaxed text-slate-800 [&_img]:my-2 [&_img]:max-h-[250px]"
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Sticky Modal Bottom Action Bar */}
+          {filteredBookmarks.length > 0 && (
+            <div className="border-t border-slate-100 bg-white px-5 py-3.5 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to remove all saved bookmarks?")) {
+                    clearBookmarks();
+                  }
+                }}
+                className="text-xs font-semibold text-rose-600 hover:text-rose-700 transition cursor-pointer self-start sm:self-auto"
+              >
+                Clear all bookmarks
+              </button>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="h-10 rounded-xl border border-slate-200 px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onStartPractice(filteredBookmarks);
+                  }}
+                  className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-5 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 transition cursor-pointer"
+                >
+                  <Play className="h-3.5 w-3.5 fill-white" />
+                  <span>
+                    Practise Bookmarks ({filteredBookmarks.length}{" "}
+                    {filteredBookmarks.length === 1 ? "question" : "questions"})
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
+
+      {/* Video Modal inside Bookmarks Modal */}
+      <VideoModal activeVideo={activeVideo} onClose={() => setActiveVideo(null)} />
+    </AnimatePresence>
+  );
+}
+
+function QuestionRoom({
+  batchId,
+  batchName,
+  session,
+  practiceMode = "EXAM",
+  timeLimitSeconds = 0,
+  bookmarkedIds = [],
+  onToggleBookmark,
+  onComplete,
+  onExit,
+}: {
+  batchId: string;
+  batchName?: string;
+  session: { testId: string; questions: InfinitePracticeQuestion[] };
+  practiceMode?: "EXAM" | "QUIZ";
+  timeLimitSeconds?: number;
+  bookmarkedIds?: string[];
+  onToggleBookmark?: (question: InfinitePracticeQuestion) => void;
+  onComplete: (result: InfinitePracticeTestSolution) => void;
+  onExit: () => void;
+}) {
+  const [index, setIndex] = useState(0);
+  const [selected, setSelected] = useState<number[]>([]);
+  const [answers, setAnswers] = useState<Record<string, SubmitInfinitePracticeInput>>({});
+  const [checkedQuestions, setCheckedQuestions] = useState<Record<string, boolean>>({});
+  const [activeVideo, setActiveVideo] = useState<ActiveVideoModalData | null>(null);
+  const [submitError, setSubmitError] = useState("");
+  const [shareFeedback, setShareFeedback] = useState("");
+  const submitTest = useSubmitInfinitePractice(session.testId);
+  const loadSolution = useInfinitePracticeSolution(session.testId);
+  const shareTest = useShareInfinitePractice();
+  const startedAt = useRef(Date.now());
+  const question = session.questions[index];
+  const progress = (index / session.questions.length) * 100;
+
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  const isCheckedInQuiz = practiceMode === "QUIZ" && Boolean(checkedQuestions[question?.questionId]);
+
+  const correctIndices = useMemo(() => {
+    return (question?.options || [])
+      .map((opt, optIdx) => (opt.isCorrect ? optIdx + 1 : null))
+      .filter((val): val is number => val !== null);
+  }, [question]);
+
+  const isAnswerCorrect = useMemo(() => {
+    if (!question) return false;
+    if (correctIndices.length > 0) {
+      return (
+        correctIndices.length === selected.length &&
+        correctIndices.every((val) => selected.includes(val))
+      );
+    }
+    if (
+      question.numericAnswer !== undefined &&
+      question.numericAnswer !== null &&
+      selected.length > 0
+    ) {
+      const userNum = Number(selected[0]);
+      const correctNum = Number(question.numericAnswer);
+      return !isNaN(userNum) && !isNaN(correctNum)
+        ? Math.abs(userNum - correctNum) < 0.001
+        : String(selected[0]).trim().toLowerCase() ===
+            String(question.numericAnswer).trim().toLowerCase();
+    }
+    return false;
+  }, [question, correctIndices, selected]);
+
+  useEffect(() => {
+    startedAt.current = Date.now();
+    setElapsedSeconds(0);
+    setSelected(answers[session.questions[index]?.questionId]?.markedSolutions ?? []);
+    setSubmitError("");
+
+    const interval = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - startedAt.current) / 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [index, session.questions]);
+
+  // Auto skip/advance if time limit is reached for question
+  useEffect(() => {
+    if (timeLimitSeconds > 0 && elapsedSeconds >= timeLimitSeconds) {
+      if (submitTest.isPending || loadSolution.isPending) return;
+      const currentAns = makeAnswer(selected.length > 0 ? "ATTEMPTED" : "SKIPPED");
+      if (currentAns) {
+        const nextAnswers = { ...answers, [currentAns.questionId]: currentAns };
+        setAnswers(nextAnswers);
+        if (index < session.questions.length - 1) {
+          setIndex((v) => v + 1);
+        } else {
+          submitCurrentTest(nextAnswers);
+        }
+      }
+    }
+  }, [elapsedSeconds, timeLimitSeconds]);
+
+  const makeAnswer = (
+    status: SubmitInfinitePracticeInput["status"] = "ATTEMPTED",
+  ): SubmitInfinitePracticeInput | null => {
+    if (!question) return null;
+    if (status === "ATTEMPTED" && selected.length === 0) return null;
+    return {
+      questionId: question.questionId,
+      status,
+      timeTaken: Math.max(1000, Date.now() - startedAt.current),
+      chapterId: question.chapterId,
+      questionNumber: index + 1,
+      markedSolutions: status === "SKIPPED" ? [] : selected,
+      difficulty: question.difficulty,
+      type: question.type,
+    };
+  };
+
+  const completeAnswers = (currentAnswers: Record<string, SubmitInfinitePracticeInput>) =>
+    session.questions.map((item, itemIndex) => (
+      currentAnswers[item.questionId] ?? {
+        questionId: item.questionId,
+        status: "SKIPPED" as const,
+        timeTaken: 0,
+        chapterId: item.chapterId,
+        questionNumber: itemIndex + 1,
+        markedSolutions: [],
+        difficulty: item.difficulty,
+        type: item.type,
+      }
+    ));
+
+  const submitCurrentTest = async (currentAnswers: Record<string, SubmitInfinitePracticeInput>) => {
+    if (submitTest.isPending || loadSolution.isPending) return;
+    setSubmitError("");
+    try {
+      await submitTest.mutateAsync({ questionsResponse: completeAnswers(currentAnswers) });
+      const result = await loadSolution.mutateAsync();
+      onComplete(result);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Could not submit this test.");
+    }
+  };
+
+  const checkAnswerInQuiz = () => {
+    if (selected.length === 0) return;
+    const answer = makeAnswer("ATTEMPTED");
+    if (answer) {
+      setAnswers((current) => ({ ...current, [answer.questionId]: answer }));
+    }
+    if (question) {
+      setCheckedQuestions((current) => ({ ...current, [question.questionId]: true }));
+    }
+  };
+
+  const next = async () => {
+    const answer = makeAnswer();
+    const nextAnswers = answer ? { ...answers, [answer.questionId]: answer } : answers;
+    if (answer) {
+      setAnswers(nextAnswers);
+    }
+    if (index < session.questions.length - 1) {
+      setIndex((value) => value + 1);
+      return;
+    }
+    await submitCurrentTest(nextAnswers);
+  };
+
+  const previous = () => {
+    if (index === 0 || submitTest.isPending || loadSolution.isPending) return;
+    const answer = makeAnswer();
+    if (answer) setAnswers((current) => ({ ...current, [answer.questionId]: answer }));
+    setIndex((value) => value - 1);
+  };
+
+  const skip = async () => {
+    const answer = makeAnswer("SKIPPED");
+    const nextAnswers = answer ? { ...answers, [answer.questionId]: answer } : answers;
+    if (answer) {
+      setAnswers(nextAnswers);
+    }
+    if (index < session.questions.length - 1) {
+      setIndex((value) => value + 1);
+      return;
+    }
+    await submitCurrentTest(nextAnswers);
+  };
+
+  const submit = async () => {
+    const answer = makeAnswer(selected.length > 0 ? "ATTEMPTED" : "SKIPPED");
+    const nextAnswers = answer
+      ? { ...answers, [answer.questionId]: answer }
+      : answers;
+    setAnswers(nextAnswers);
+    await submitCurrentTest(nextAnswers);
+  };
+
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Guard: Never intercept if user is typing in an input or textarea
+      const target = e.target as HTMLElement | null;
+      const isInputFocused =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target?.isContentEditable ||
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA";
+
+      if (isInputFocused) return;
+      if (activeVideo) return;
+
+      // 'B' or 'b' toggles bookmark
+      if (e.key === "b" || e.key === "B") {
+        e.preventDefault();
+        if (question) {
+          onToggleBookmark?.(question);
+        }
+        return;
+      }
+
+      // ArrowLeft: Navigate to previous question
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        previous();
+        return;
+      }
+
+      // ArrowRight: Navigate to next question (or check answer in Quiz mode if not checked)
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        if (practiceMode === "QUIZ" && !checkedQuestions[question?.questionId]) {
+          if (selected.length > 0) {
+            checkAnswerInQuiz();
+          } else {
+            skip();
+          }
+        } else {
+          next();
+        }
+        return;
+      }
+
+      // Option selection applies only to questions with options
+      const numOptions = question?.options?.length ?? 0;
+      const isChecked = practiceMode === "QUIZ" && Boolean(checkedQuestions[question?.questionId]);
+      if (numOptions === 0 || isChecked) return;
+
+      // Keys 1, 2, 3, 4
+      if (["1", "2", "3", "4"].includes(e.key)) {
+        const optNum = parseInt(e.key, 10);
+        if (optNum >= 1 && optNum <= numOptions) {
+          e.preventDefault();
+          setSelected((current) => {
+            if (question.type === 2) {
+              // Multi-select toggle
+              return current.includes(optNum)
+                ? current.filter((v) => v !== optNum)
+                : [...current, optNum];
+            }
+            // Single-select
+            return [optNum];
+          });
+        }
+        return;
+      }
+
+      // ArrowDown: Cycle option downwards (for single-choice questions)
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelected((current) => {
+          if (question.type === 2) return current;
+          if (current.length === 0) return [1];
+          const nextOpt = (current[0] % numOptions) + 1;
+          return [nextOpt];
+        });
+        return;
+      }
+
+      // ArrowUp: Cycle option upwards (for single-choice questions)
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelected((current) => {
+          if (question.type === 2) return current;
+          if (current.length === 0) return [numOptions];
+          const prevOpt = current[0] === 1 ? numOptions : current[0] - 1;
+          return [prevOpt];
+        });
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    index,
+    question,
+    selected,
+    practiceMode,
+    checkedQuestions,
+    activeVideo,
+    onToggleBookmark,
+  ]);
+
+  const handleShareInRoom = async () => {
+    try {
+      const subjectNames = Array.from(new Set(session.questions.map((q) => q.subjectName).filter(Boolean))) as string[];
+      const res = await shareTest.mutateAsync({
+        batchId,
+        batchName,
+        subjectNames,
+        timeLimitSeconds,
+        questions: session.questions,
+      });
+      const shareUrl = `${window.location.origin}/practice/${batchId}?test=${res.code}`;
+
+      if (navigator.share) {
+        await navigator.share({
+          title: `Wegenz Infinite Practice Challenge (${session.questions.length} Questions)`,
+          text: `Take this ${session.questions.length}-question practice challenge on Wegenz!`,
+          url: shareUrl,
+        }).catch(() => {});
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        setShareFeedback("Copied test link!");
+        setTimeout(() => setShareFeedback(""), 3000);
+      }
+    } catch {
+      setShareFeedback("Could not generate share link");
+      setTimeout(() => setShareFeedback(""), 3000);
+    }
+  };
+
+  if (!question) return null;
+
+  const secondsRemaining = timeLimitSeconds > 0 ? Math.max(0, timeLimitSeconds - elapsedSeconds) : 0;
+  const isTimeRunningOut = timeLimitSeconds > 0 && secondsRemaining <= 15;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="mx-auto max-w-4xl"
+      data-testid="panel-practice-question"
+    >
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <button
+            type="button"
+            data-testid="button-leave-practice"
+            onClick={onExit}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+            title="Exit practice"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="truncate text-xs font-bold uppercase tracking-[0.14em] text-indigo-600">Infinite Practice</p>
+              {practiceMode === "QUIZ" ? (
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200">
+                  <Zap className="h-3 w-3 fill-amber-500 text-amber-500" /> Quiz Mode
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700 border border-indigo-200">
+                  Exam Mode
+                </span>
+              )}
+            </div>
+            <p className="text-sm font-semibold text-slate-700">
+              Question {index + 1} <span className="font-normal text-slate-400">of {session.questions.length}</span>
+            </p>
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {/* In-Room Share Button */}
+          <button
+            type="button"
+            onClick={handleShareInRoom}
+            disabled={shareTest.isPending}
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+            title="Share this test set with friends"
+          >
+            <Share2 className="h-3.5 w-3.5 text-indigo-600" />
+            <span className="hidden sm:inline">{shareFeedback || "Share"}</span>
+          </button>
+
+          <span className="hidden items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-600 sm:inline-flex">
+            <Target className="h-3.5 w-3.5 text-indigo-600" /> {question.subjectName || "JEE 2026"}
+          </span>
+          <button
+            data-testid="button-submit-test"
+            disabled={submitTest.isPending || loadSolution.isPending}
+            onClick={submit}
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 text-xs font-bold text-indigo-700 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {submitTest.isPending || loadSolution.isPending
+              ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Submitting...</>
+              : "Submit test"}
+          </button>
+        </div>
+      </div>
+      <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-slate-200">
+        <motion.div animate={{ width: `${progress}%` }} className="h-full rounded-full bg-indigo-600" />
+      </div>
+
+      {/* In-Room Question Navigation Strip */}
+      <div className="mb-5 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        {session.questions.map((q, qIdx) => {
+          const isCurrent = qIdx === index;
+          const isAnswered = answers[q.questionId] && answers[q.questionId].status === "ATTEMPTED";
+          const isMarkedBookmarked = bookmarkedIds.includes(q.questionId);
+          const isChecked = checkedQuestions[q.questionId];
+
+          // For Quiz mode, evaluate whether this question was answered correctly
+          let quizPillStyle = "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50";
+          if (isCurrent) {
+            quizPillStyle = "bg-indigo-600 text-white ring-2 ring-indigo-600 ring-offset-1 shadow-sm";
+          } else if (practiceMode === "QUIZ" && isChecked) {
+            const pillAns = answers[q.questionId];
+            const pillSelected = pillAns?.markedSolutions || [];
+            const pillCorrectIndices = (q.options || [])
+              .map((opt, oIdx) => (opt.isCorrect ? oIdx + 1 : null))
+              .filter((v): v is number => v !== null);
+            let pillCorrect = false;
+            if (pillCorrectIndices.length > 0) {
+              pillCorrect =
+                pillCorrectIndices.length === pillSelected.length &&
+                pillCorrectIndices.every((v) => pillSelected.includes(v));
+            } else if (q.numericAnswer !== undefined && q.numericAnswer !== null && pillSelected.length > 0) {
+              const uN = Number(pillSelected[0]);
+              const cN = Number(q.numericAnswer);
+              pillCorrect = !isNaN(uN) && !isNaN(cN) ? Math.abs(uN - cN) < 0.001 : String(pillSelected[0]).trim() === String(q.numericAnswer).trim();
+            }
+            quizPillStyle = pillCorrect
+              ? "bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200"
+              : "bg-rose-100 text-rose-800 border border-rose-300 hover:bg-rose-200";
+          } else if (isAnswered) {
+            quizPillStyle = "bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200";
+          }
+
+          return (
+            <button
+              key={q.questionId}
+              type="button"
+              data-testid={`room-palette-pill-${qIdx + 1}`}
+              onClick={() => {
+                const answer = makeAnswer();
+                if (answer) setAnswers((current) => ({ ...current, [answer.questionId]: answer }));
+                setIndex(qIdx);
+              }}
+              title={`Jump to Q${qIdx + 1}${isMarkedBookmarked ? " (Bookmarked)" : ""}`}
+              className={`relative flex h-8 min-w-8 items-center justify-center rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${quizPillStyle}`}
+            >
+              <span>{qIdx + 1}</span>
+              {isMarkedBookmarked && (
+                <span
+                  className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-400 text-amber-950 shadow-xs"
+                  title="Bookmarked"
+                >
+                  <Bookmark className="h-2 w-2 fill-amber-900 text-amber-900" />
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.article
+          key={question.questionId}
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -10 }}
+          className="practice-question-canvas rounded-3xl border border-slate-200 p-5 shadow-sm sm:p-8"
+        >
+          <div className="mb-6 flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="truncate text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+                {question.chapterName || "Practice question"}
+              </span>
+              {question.type === 2 && (
+                <span className="rounded-md bg-purple-50 px-2 py-0.5 text-[11px] font-bold text-purple-700">
+                  Multiple Correct
+                </span>
+              )}
+              {question.type === 8 && (
+                <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">
+                  Comprehension
+                </span>
+              )}
+              {(question.type === 3 || (!question.options || question.options.length === 0)) && (
+                <span className="rounded-md bg-sky-50 px-2 py-0.5 text-[11px] font-bold text-sky-700">
+                  Numerical / Integer
+                </span>
+              )}
+            </div>
+
+            {/* Bookmark & Question Timer at top corner right side */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                data-testid="button-bookmark-question"
+                onClick={() => onToggleBookmark?.(question)}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-bold transition-all cursor-pointer ${
+                  bookmarkedIds.includes(question.questionId)
+                    ? "bg-amber-100 text-amber-900 border border-amber-300 shadow-xs"
+                    : "bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200"
+                }`}
+                title={
+                  bookmarkedIds.includes(question.questionId)
+                    ? "Remove bookmark (Press B)"
+                    : "Bookmark question (Press B)"
+                }
+              >
+                {bookmarkedIds.includes(question.questionId) ? (
+                  <>
+                    <BookmarkCheck className="h-3.5 w-3.5 fill-amber-500 text-amber-700" />
+                    <span>Bookmarked</span>
+                  </>
+                ) : (
+                  <>
+                    <Bookmark className="h-3.5 w-3.5 text-slate-500" />
+                    <span className="hidden sm:inline">Bookmark</span>
+                  </>
+                )}
+              </button>
+
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-bold font-mono tracking-tight transition-colors ${
+                  timeLimitSeconds > 0
+                    ? isTimeRunningOut
+                      ? "bg-rose-100 text-rose-700 animate-pulse border border-rose-200"
+                      : "bg-amber-50 text-amber-800 border border-amber-200"
+                    : "bg-slate-100 text-slate-700 border border-slate-200"
+                }`}
+                title={timeLimitSeconds > 0 ? `Time left for this question (${formatClock(secondsRemaining)})` : "Time spent on this question"}
+              >
+                <Timer className={`h-3.5 w-3.5 ${isTimeRunningOut ? "text-rose-600 animate-spin" : "text-slate-500"}`} />
+                {timeLimitSeconds > 0 ? (
+                  <span>{formatClock(secondsRemaining)} / {formatClock(timeLimitSeconds)}</span>
+                ) : (
+                  <span>{formatClock(elapsedSeconds)}</span>
+                )}
+              </span>
+              <span className="shrink-0 text-xs text-slate-400">{question.typeTitle || "Question"}</span>
+            </div>
+          </div>
+
+          {/* Parent Passage / Context if Comprehension Question */}
+          {question.parentQuestion?.content && (
+            <div className="mb-6 rounded-2xl border border-amber-200/80 bg-amber-50/50 p-4 sm:p-5">
+              <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-800">
+                <span>📖 Reading Passage / Context</span>
+              </div>
+              <HtmlContent
+                html={question.parentQuestion.content}
+                className="text-sm leading-relaxed text-slate-800 [&_img]:my-3 [&_img]:max-h-[300px]"
+              />
+            </div>
+          )}
+
+          <HtmlContent
+            html={question.content || question.plainQuestionText}
+            className="mb-7 text-[17px] leading-8 text-slate-900 [&_img]:my-4 [&_img]:max-h-[420px]"
+            testId="text-practice-question"
+          />
+
+          {/* Options List for Option-based Questions */}
+          {question.options && question.options.length > 0 ? (
+            <div className="space-y-3" role="radiogroup" aria-label={`Answers for question ${index + 1}`}>
+              {question.options.map((option, optionIndex) => {
+                const optNum = optionIndex + 1;
+                const isSelected = selected.includes(optNum);
+                const isCorrectOption = correctIndices.includes(optNum);
+
+                // Styling logic for Quiz feedback vs normal test
+                let optionStyle = isSelected
+                  ? "border-indigo-500 bg-indigo-50"
+                  : "border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50";
+
+                let badgeBadge = null;
+
+                if (isCheckedInQuiz) {
+                  if (isCorrectOption && isSelected) {
+                    optionStyle = "border-emerald-500 bg-emerald-50/90 text-emerald-950 ring-1 ring-emerald-500";
+                    badgeBadge = (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
+                        <Check className="h-3 w-3 text-emerald-600" /> Your Correct Choice
+                      </span>
+                    );
+                  } else if (isCorrectOption && !isSelected) {
+                    optionStyle = "border-emerald-500 bg-emerald-50/70 text-emerald-950 ring-1 ring-emerald-500";
+                    badgeBadge = (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
+                        <Check className="h-3 w-3 text-emerald-600" /> Correct Answer
+                      </span>
+                    );
+                  } else if (isSelected && !isCorrectOption) {
+                    optionStyle = "border-rose-400 bg-rose-50/90 text-rose-950 ring-1 ring-rose-400";
+                    badgeBadge = (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-800">
+                        <X className="h-3 w-3 text-rose-600" /> Your Answer
+                      </span>
+                    );
+                  } else {
+                    optionStyle = "border-slate-200 bg-slate-50/40 text-slate-400 opacity-60";
+                  }
+                }
+
+                return (
+                  <button
+                    key={`${question.questionId}-${optionIndex}`}
+                    data-testid={`button-option-${optNum}`}
+                    role={question.type === 2 ? "checkbox" : "radio"}
+                    aria-checked={isSelected}
+                    disabled={isCheckedInQuiz || submitTest.isPending || loadSolution.isPending}
+                    onClick={() => {
+                      if (isCheckedInQuiz) return;
+                      setSelected((current) =>
+                        question.type === 2
+                          ? current.includes(optNum)
+                            ? current.filter((value) => value !== optNum)
+                            : [...current, optNum]
+                          : [optNum],
+                      );
+                    }}
+                    className={`flex w-full items-start justify-between gap-3 rounded-2xl border p-4 text-left transition-all ${
+                      isCheckedInQuiz ? "cursor-default" : "cursor-pointer"
+                    } ${optionStyle}`}
+                  >
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                      <span
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
+                          isCheckedInQuiz && isCorrectOption
+                            ? "bg-emerald-600 text-white"
+                            : isCheckedInQuiz && isSelected && !isCorrectOption
+                            ? "bg-rose-600 text-white"
+                            : isSelected
+                            ? "bg-indigo-600 text-white"
+                            : question.type === 2
+                            ? "border-2 border-slate-300 bg-white text-slate-600"
+                            : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {isCheckedInQuiz ? (
+                          isCorrectOption ? (
+                            "✓"
+                          ) : isSelected ? (
+                            "✕"
+                          ) : (
+                            String.fromCharCode(65 + optionIndex)
+                          )
+                        ) : question.type === 2 && isSelected ? (
+                          "✓"
+                        ) : (
+                          String.fromCharCode(65 + optionIndex)
+                        )}
+                      </span>
+                      <HtmlContent
+                        html={option.text}
+                        className="min-w-0 flex-1 pt-0.5 text-sm leading-6 text-slate-800 [&_p]:mb-0"
+                      />
+                    </div>
+                    {badgeBadge && <div className="shrink-0 self-center pl-2">{badgeBadge}</div>}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            /* Numeric / Integer Keypad & Input Box */
+            <div className="my-6 rounded-2xl border border-sky-200 bg-sky-50/40 p-5">
+              <p className="text-xs font-bold uppercase tracking-wider text-sky-800 mb-2">
+                Enter Numerical / Integer Value:
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <input
+                  type="number"
+                  step="any"
+                  disabled={isCheckedInQuiz}
+                  placeholder="e.g. 4.5 or 12"
+                  value={selected[0] !== undefined ? selected[0] : ""}
+                  onChange={(e) => {
+                    if (isCheckedInQuiz) return;
+                    const val = e.target.value;
+                    setSelected(val === "" ? [] : [Number(val)]);
+                  }}
+                  className={`h-11 w-48 rounded-xl border px-3.5 text-base font-semibold focus:outline-none ${
+                    isCheckedInQuiz
+                      ? isAnswerCorrect
+                        ? "border-emerald-400 bg-emerald-50 text-emerald-950"
+                        : "border-rose-400 bg-rose-50 text-rose-950"
+                      : "border-slate-300 bg-white text-slate-900 focus:border-indigo-500"
+                  }`}
+                />
+                {!isCheckedInQuiz && selected.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelected([])}
+                    className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              {isCheckedInQuiz && (
+                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+                  <span className="font-bold text-slate-600">
+                    Correct value: <code className="bg-white px-2 py-0.5 rounded border border-slate-200 font-mono text-slate-900">{String(question.numericAnswer ?? "")}</code>
+                  </span>
+                  {isAnswerCorrect ? (
+                    <span className="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Correct (+4 pts)
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-md">
+                      <XCircle className="h-3.5 w-3.5" /> Incorrect (-1 pt)
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Quiz Mode Instant Feedback & Step-by-Step KaTeX Explanation */}
+          {isCheckedInQuiz && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-6 space-y-4"
+            >
+              {/* Instant Status Banner */}
+              <div
+                className={`flex items-center justify-between gap-3 rounded-2xl p-4 sm:p-5 border ${
+                  isAnswerCorrect
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                    : "border-rose-200 bg-rose-50 text-rose-900"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                      isAnswerCorrect ? "bg-emerald-500 text-white" : "bg-rose-500 text-white"
+                    }`}
+                  >
+                    {isAnswerCorrect ? <CheckCircle2 className="h-6 w-6" /> : <XCircle className="h-6 w-6" />}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold sm:text-base">
+                      {isAnswerCorrect ? "Correct! +4 Points" : "Incorrect Answer (-1 Point)"}
+                    </p>
+                    <p className="text-xs opacity-85">
+                      {isAnswerCorrect
+                        ? "Great job! Review the step-by-step KaTeX explanation below."
+                        : "Review the full step-by-step solution below to see the right approach."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* KaTeX Step-by-Step Solution & Inline Video Solution Button */}
+              {question.solutions && question.solutions.length > 0 && (
+                <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4 sm:p-5">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-indigo-100/80 pb-3">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-900">
+                      <Sparkles className="h-4 w-4 text-indigo-600" />
+                      <span>Step-by-Step Solution</span>
+                    </div>
+                    {question.solutions.some((s) => s.videoSolution?.url) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const solWithVid = question.solutions.find((s) => s.videoSolution?.url);
+                          if (!solWithVid?.videoSolution?.url) return;
+                          const url = solWithVid.videoSolution.url;
+                          const vType = getVideoType(url);
+                          if (vType) {
+                            setActiveVideo({
+                              type: vType,
+                              videoId: getYouTubeId(url) || undefined,
+                              url,
+                              title: `Question ${index + 1} Video Solution`,
+                            });
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 transition cursor-pointer"
+                      >
+                        <Play className="h-3.5 w-3.5 fill-white" /> Watch Video Solution
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    {question.solutions.map((sol, sIdx) => (
+                      <div key={sIdx}>
+                        {sol.text && (
+                          <HtmlContent
+                            html={sol.text}
+                            className="text-sm leading-relaxed text-slate-800 [&_img]:my-3 [&_img]:max-h-[350px]"
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* Action Navigation Footer */}
+          <div className="mt-7 flex flex-col gap-4 border-t border-slate-100 pt-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-slate-400">
+                {practiceMode === "QUIZ"
+                  ? isCheckedInQuiz
+                    ? "Explanation displayed. Proceed to next question."
+                    : "Select your answer and press 'Check Answer'."
+                  : question.type === 2
+                  ? "Select all correct options"
+                  : question.type === 3 || (!question.options || question.options.length === 0)
+                  ? "Type your numerical answer"
+                  : "Select an option"}
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  data-testid="button-previous-question"
+                  disabled={index === 0 || submitTest.isPending || loadSolution.isPending}
+                  onClick={previous}
+                  className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" /> Previous
+                </button>
+
+                {practiceMode === "QUIZ" ? (
+                  !isCheckedInQuiz ? (
+                    <>
+                      <button
+                        data-testid="button-skip-question"
+                        disabled={submitTest.isPending || loadSolution.isPending}
+                        onClick={skip}
+                        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+                      >
+                        Skip
+                      </button>
+                      <button
+                        data-testid="button-check-answer"
+                        disabled={selected.length === 0 || submitTest.isPending || loadSolution.isPending}
+                        onClick={checkAnswerInQuiz}
+                        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
+                      >
+                        <Zap className="h-3.5 w-3.5 fill-current" /> Check Answer
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      data-testid={
+                        index === session.questions.length - 1
+                          ? "button-submit-test-final"
+                          : "button-next-question"
+                      }
+                      disabled={submitTest.isPending || loadSolution.isPending}
+                      onClick={next}
+                      className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-4 text-xs font-bold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
+                    >
+                      {submitTest.isPending || loadSolution.isPending ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Submitting...
+                        </>
+                      ) : (
+                        <>
+                          {index === session.questions.length - 1 ? "Submit & finish test" : "Next question"}{" "}
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </>
+                      )}
+                    </button>
+                  )
+                ) : (
+                  /* EXAM Mode */
+                  <>
+                    <button
+                      data-testid="button-skip-question"
+                      disabled={submitTest.isPending || loadSolution.isPending}
+                      onClick={skip}
+                      className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+                    >
+                      Skip question
+                    </button>
+                    <button
+                      data-testid={
+                        index === session.questions.length - 1
+                          ? "button-submit-test-final"
+                          : "button-next-question"
+                      }
+                      disabled={selected.length === 0 || submitTest.isPending || loadSolution.isPending}
+                      onClick={next}
+                      className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-4 text-xs font-bold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
+                    >
+                      {submitTest.isPending || loadSolution.isPending ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Submitting...
+                        </>
+                      ) : (
+                        <>
+                          {index === session.questions.length - 1 ? "Submit & finish" : "Next question"}{" "}
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </>
+                      )}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+            {submitError && (
+              <div
+                className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700"
+                data-testid="status-practice-submit-error"
+              >
+                {submitError}
+              </div>
+            )}
+          </div>
+
+          {/* Keyboard Shortcuts Hint Bar */}
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 pt-3 text-[11px] text-slate-600">
+            <span className="font-semibold text-slate-700">Keyboard shortcuts:</span>
+            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-600 border border-slate-200">1-4</span> Select
+            <span>•</span>
+            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-600 border border-slate-200">↑/↓</span> Cycle
+            <span>•</span>
+            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-600 border border-slate-200">←/→</span> Question
+            <span>•</span>
+            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-600 border border-slate-200">B</span> Bookmark
+          </div>
+        </motion.article>
+      </AnimatePresence>
+
+      {/* Reusable Video Solution Modal in Question Room */}
+      <VideoModal activeVideo={activeVideo} onClose={() => setActiveVideo(null)} />
+    </motion.div>
+  );
+}
+
 function Completion({
   batchId,
   batchName,
   session,
   timeLimitSeconds = 0,
+  bookmarkedIds = [],
+  onToggleBookmark,
   result,
   onRetry,
   onRestart,
@@ -1900,11 +2921,13 @@ function Completion({
   batchName?: string;
   session: { testId: string; questions: InfinitePracticeQuestion[] };
   timeLimitSeconds?: number;
+  bookmarkedIds?: string[];
+  onToggleBookmark?: (question: InfinitePracticeQuestion) => void;
   result: InfinitePracticeTestSolution;
   onRetry: () => void;
   onRestart: () => void;
 }) {
-  const [filterTab, setFilterTab] = useState<"ALL" | "CORRECT" | "INCORRECT" | "SKIPPED">("ALL");
+  const [filterTab, setFilterTab] = useState<"ALL" | "CORRECT" | "INCORRECT" | "SKIPPED" | "BOOKMARKED">("ALL");
   const [shareFeedback, setShareFeedback] = useState("");
   const [highlightedQNum, setHighlightedQNum] = useState<number | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -2048,8 +3071,9 @@ function Completion({
 
   const filteredQuestions = useMemo(() => {
     if (filterTab === "ALL") return questionSolutions;
+    if (filterTab === "BOOKMARKED") return questionSolutions.filter((q) => bookmarkedIds.includes(q.questionId));
     return questionSolutions.filter((q) => getQuestionStatus(q) === filterTab);
-  }, [questionSolutions, filterTab]);
+  }, [questionSolutions, filterTab, bookmarkedIds]);
 
   const handleJumpToQuestion = (qNumber: number, status: "CORRECT" | "INCORRECT" | "SKIPPED") => {
     if (filterTab !== "ALL" && filterTab !== status) {
@@ -2367,6 +3391,9 @@ function Completion({
               <span className="inline-flex items-center gap-1">
                 <span className="h-2 w-2 rounded-full bg-slate-400" /> Skipped
               </span>
+              <span className="inline-flex items-center gap-1">
+                <Bookmark className="h-3 w-3 fill-amber-500 text-amber-600" /> Bookmarked
+              </span>
             </div>
           </div>
           <div className="mt-3.5 flex flex-wrap gap-2">
@@ -2375,6 +3402,7 @@ function Completion({
               const qNum = item.questionNumber ?? (trueIndex >= 0 ? trueIndex + 1 : idx + 1);
               const qStatus = getQuestionStatus(item);
               const isPillHighlighted = highlightedQNum === qNum;
+              const isMarkedBookmarked = bookmarkedIds.includes(item.questionId);
               const pillStyles =
                 qStatus === "CORRECT"
                   ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300"
@@ -2388,12 +3416,20 @@ function Completion({
                   type="button"
                   data-testid={`palette-pill-${qNum}`}
                   onClick={() => handleJumpToQuestion(qNum, qStatus)}
-                  title={`Jump to Question ${qNum} (${qStatus.toLowerCase()})`}
-                  className={`flex h-9 w-9 items-center justify-center rounded-xl border text-xs font-bold transition-all shadow-2xs hover:scale-105 active:scale-95 ${
+                  title={`Jump to Question ${qNum} (${qStatus.toLowerCase()})${isMarkedBookmarked ? " • Bookmarked" : ""}`}
+                  className={`relative flex h-9 w-9 items-center justify-center rounded-xl border text-xs font-bold transition-all shadow-2xs hover:scale-105 active:scale-95 ${
                     isPillHighlighted ? "ring-2 ring-indigo-500 ring-offset-2 scale-105 " : ""
                   }${pillStyles}`}
                 >
-                  {qNum}
+                  <span>{qNum}</span>
+                  {isMarkedBookmarked && (
+                    <span
+                      className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-400 text-amber-950 shadow-xs"
+                      title="Bookmarked"
+                    >
+                      <Bookmark className="h-2 w-2 fill-amber-900 text-amber-900" />
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -2427,6 +3463,13 @@ function Completion({
                 count: totalSkipped,
                 icon: MinusCircle,
                 activeColor: "text-slate-500",
+              },
+              {
+                key: "BOOKMARKED",
+                label: "Bookmarked",
+                count: bookmarkedIds.length,
+                icon: BookmarkCheck,
+                activeColor: "text-amber-600",
               },
             ] as const
           ).map((tab) => {
@@ -2474,6 +3517,8 @@ function Completion({
               ? "Flawless! You didn't get any questions incorrect in this set. 🎉"
               : filterTab === "SKIPPED"
               ? "You attempted every single question in this set! 🎯"
+              : filterTab === "BOOKMARKED"
+              ? "No questions bookmarked in this test. Bookmark questions during your practice or review to revisit them!"
               : "No questions found."}
           </p>
           <button
@@ -2557,6 +3602,29 @@ function Completion({
                         {formatDuration(item.timeTaken)}
                       </span>
                     )}
+                    <button
+                      type="button"
+                      data-testid={`button-bookmark-solution-${qNum}`}
+                      onClick={() => onToggleBookmark?.(sessionQ || (item as any))}
+                      className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold transition-all cursor-pointer ${
+                        bookmarkedIds.includes(item.questionId)
+                          ? "bg-amber-100 text-amber-900 border border-amber-300 shadow-xs"
+                          : "bg-slate-100 text-slate-500 hover:bg-slate-200 border border-slate-200"
+                      }`}
+                      title={bookmarkedIds.includes(item.questionId) ? "Remove bookmark" : "Bookmark question"}
+                    >
+                      {bookmarkedIds.includes(item.questionId) ? (
+                        <>
+                          <BookmarkCheck className="h-3.5 w-3.5 fill-amber-500 text-amber-700" />
+                          <span>Bookmarked</span>
+                        </>
+                      ) : (
+                        <>
+                          <Bookmark className="h-3.5 w-3.5 text-slate-400" />
+                          <span>Bookmark</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
 
@@ -2793,108 +3861,8 @@ function Completion({
         </button>
       )}
 
-      {/* In-Page YouTube Video Solution Modal */}
-      <AnimatePresence>
-        {activeVideo && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md"
-            onClick={() => setActiveVideo(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 16 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 16 }}
-              transition={{ type: "spring", duration: 0.25 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative flex w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 shadow-2xl"
-            >
-              {/* Top Header */}
-              <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3 sm:px-6">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
-                      activeVideo.type === "youtube"
-                        ? "bg-red-600/20 text-red-500"
-                        : activeVideo.type === "dash"
-                        ? "bg-purple-600/20 text-purple-400"
-                        : "bg-indigo-600/20 text-indigo-400"
-                    }`}
-                  >
-                    <Play
-                      className={`h-4 w-4 ${
-                        activeVideo.type === "youtube" ? "fill-red-500" : "fill-current"
-                      }`}
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <p
-                      className={`text-[11px] font-bold uppercase tracking-wider ${
-                        activeVideo.type === "youtube"
-                          ? "text-red-400"
-                          : activeVideo.type === "dash"
-                          ? "text-purple-400"
-                          : "text-indigo-400"
-                      }`}
-                    >
-                      {activeVideo.type === "youtube"
-                        ? "YouTube Video Solution"
-                        : activeVideo.type === "dash"
-                        ? "MPEG-DASH Stream"
-                        : "Video Solution"}
-                    </p>
-                    <h4 className="truncate text-sm font-semibold text-white sm:text-base">
-                      {activeVideo.title}
-                    </h4>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <a
-                    href={activeVideo.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-slate-700 hover:text-white"
-                    title={activeVideo.type === "youtube" ? "Open in YouTube" : "Open URL"}
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">
-                      {activeVideo.type === "youtube" ? "Open in YouTube" : "Open URL"}
-                    </span>
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => setActiveVideo(null)}
-                    data-testid="button-close-video-modal"
-                    className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 text-slate-400 transition hover:bg-slate-700 hover:text-white cursor-pointer"
-                    title="Close"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Video Player according to format */}
-              {activeVideo.type === "youtube" && activeVideo.videoId ? (
-                <div className="relative w-full aspect-video bg-black">
-                  <iframe
-                    src={`https://www.youtube-nocookie.com/embed/${activeVideo.videoId}?autoplay=1&rel=0&modestbranding=1`}
-                    title={activeVideo.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-                    allowFullScreen
-                    className="absolute inset-0 h-full w-full border-0"
-                  />
-                </div>
-              ) : activeVideo.type === "dash" ? (
-                <DashPlayer url={activeVideo.url} />
-              ) : (
-                <DirectPlayer url={activeVideo.url} />
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* In-Page Video Solution Modal */}
+      <VideoModal activeVideo={activeVideo} onClose={() => setActiveVideo(null)} />
     </motion.div>
   );
 }
@@ -2904,9 +3872,22 @@ export default function InfinitePractice() {
   const [roomState, setRoomState] = useState<RoomState>("selection");
   const [session, setSession] = useState<{ testId: string; questions: InfinitePracticeQuestion[] } | null>(null);
   const [timeLimitPerQuestion, setTimeLimitPerQuestion] = useState(0);
+  const [practiceMode, setPracticeMode] = useState<"EXAM" | "QUIZ">("EXAM");
   const [testResult, setTestResult] = useState<InfinitePracticeTestSolution | null>(null);
   const matchedBatch = INFINITE_PRACTICE_BATCHES.find((b) => b.id === batchId || b.name === batchId);
   const batchName = matchedBatch?.name || "Infinite Practice";
+
+  const { bookmarks, bookmarkedIds, toggleBookmark } = useBookmarks();
+  const [showBookmarksModal, setShowBookmarksModal] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search);
+      if (p.get("bookmarks") === "open" || p.get("bookmarks") === "true") {
+        setShowBookmarksModal(true);
+      }
+    }
+  }, []);
 
   const sharedCode = useMemo(() => {
     if (typeof window === "undefined") return null;
@@ -2923,9 +3904,11 @@ export default function InfinitePractice() {
   const startQuestionRoom = (
     nextSession: { testId: string; questions: InfinitePracticeQuestion[] },
     timeLimitSeconds: number,
+    mode: "EXAM" | "QUIZ" = "EXAM",
   ) => {
     setSession(nextSession);
     setTimeLimitPerQuestion(timeLimitSeconds);
+    setPracticeMode(mode);
     setTestResult(null);
     setRoomState("question");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2955,13 +3938,25 @@ export default function InfinitePractice() {
                   Pick a subject, chapter, difficulty, and question count. Practise at your own pace.
                 </p>
               </div>
-              <Link
-                data-testid="link-practice-back"
-                href="/"
-                className="inline-flex h-10 items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 sm:self-auto"
-              >
-                <ArrowLeft className="h-4 w-4" /> All tracks
-              </Link>
+              <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+                <button
+                  type="button"
+                  data-testid="button-open-bookmarks-hub"
+                  onClick={() => setShowBookmarksModal(true)}
+                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 text-xs font-bold text-amber-900 shadow-xs hover:bg-amber-100 transition cursor-pointer"
+                  title="Open your saved bookmarked questions"
+                >
+                  <Bookmark className="h-4 w-4 fill-amber-500 text-amber-600" />
+                  <span>Saved Bookmarks {bookmarks.length > 0 ? `(${bookmarks.length})` : ""}</span>
+                </button>
+                <Link
+                  data-testid="link-practice-back"
+                  href="/"
+                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 sm:self-auto"
+                >
+                  <ArrowLeft className="h-4 w-4" /> All tracks
+                </Link>
+              </div>
             </div>
             <SelectionPanel
               batchId={batchId}
@@ -2976,7 +3971,10 @@ export default function InfinitePractice() {
             batchId={batchId}
             batchName={batchName}
             session={session}
+            practiceMode={practiceMode}
             timeLimitSeconds={timeLimitPerQuestion}
+            bookmarkedIds={bookmarkedIds}
+            onToggleBookmark={toggleBookmark}
             onComplete={(result) => {
               setTestResult(result);
               setRoomState("complete");
@@ -2996,6 +3994,8 @@ export default function InfinitePractice() {
             batchName={batchName}
             session={session}
             timeLimitSeconds={timeLimitPerQuestion}
+            bookmarkedIds={bookmarkedIds}
+            onToggleBookmark={toggleBookmark}
             result={testResult}
             onRetry={retryCurrentTest}
             onRestart={() => {
@@ -3009,6 +4009,22 @@ export default function InfinitePractice() {
           />
         )}
       </main>
+
+      {/* Global Saved Bookmarks Hub Modal */}
+      <BookmarksModal
+        isOpen={showBookmarksModal}
+        onClose={() => setShowBookmarksModal(false)}
+        onStartPractice={(selectedBookmarks) => {
+          startQuestionRoom(
+            {
+              testId: `bookmarks-${Date.now()}`,
+              questions: selectedBookmarks,
+            },
+            timeLimitPerQuestion,
+            practiceMode,
+          );
+        }}
+      />
     </div>
   );
 }

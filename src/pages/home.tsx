@@ -1,9 +1,12 @@
-import { ArrowRight, BookOpen, BrainCircuit, FlaskConical, Target, Sparkles, Zap, ShieldCheck } from "lucide-react";
+import { ArrowRight, Bookmark, BookOpen, BrainCircuit, FlaskConical, Target, Sparkles, Zap, ShieldCheck } from "lucide-react";
 import { Link } from "wouter";
 import { usePageMeta } from "@/hooks/usePageMeta";
+import { useBookmarks } from "@/hooks/useBookmarks";
 import { INFINITE_PRACTICE_BATCHES } from "@/hooks/useInfinitePractice";
 
 export default function Home() {
+  const { bookmarks } = useBookmarks();
+
   usePageMeta({
     title: "Infinite Practice | Wegenz",
     description: "Choose your exam and class to start unlimited focused question practice on Wegenz.",
@@ -26,8 +29,17 @@ export default function Home() {
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
+          <div className="flex items-center gap-2.5">
+            <Link
+              href="/practice/11th_JEE?bookmarks=open"
+              data-testid="link-home-saved-bookmarks"
+              className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-900 transition hover:bg-amber-100 shadow-xs cursor-pointer"
+              title="Open your saved bookmarked questions"
+            >
+              <Bookmark className="h-3.5 w-3.5 fill-amber-500 text-amber-600" />
+              <span>Saved Bookmarks {bookmarks.length > 0 ? `(${bookmarks.length})` : ""}</span>
+            </Link>
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
               Offline Ready
             </span>
