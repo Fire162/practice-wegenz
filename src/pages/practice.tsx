@@ -1437,7 +1437,7 @@ function DashPlayer({ url }: { url: string }) {
         </div>
         <h4 className="text-base font-bold text-white sm:text-lg">Protected CloudFront Video Stream</h4>
         <p className="mt-2 max-w-lg text-xs sm:text-sm text-slate-400 leading-relaxed">
-          This MPEG-DASH stream is hosted on PhysicsWallah&apos;s private CloudFront CDN (<code className="text-slate-200 bg-slate-800 px-1 py-0.5 rounded text-[11px]">d1d34p8vz63oiq.cloudfront.net</code>) with AWS Restricted Viewer Access. CloudFront requires signed tokens (<code className="text-amber-400 bg-amber-950/60 px-1 py-0.5 rounded text-[11px]">Key-Pair-Id / Policy / Signature</code>) to stream.
+          This MPEG-DASH stream is hosted on a protected CloudFront CDN with AWS Restricted Viewer Access. CloudFront requires signed tokens (<code className="text-amber-400 bg-amber-950/60 px-1 py-0.5 rounded text-[11px]">Key-Pair-Id / Policy / Signature</code>) to stream.
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
           <button
