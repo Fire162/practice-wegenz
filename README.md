@@ -30,10 +30,10 @@
 
 ## 📖 Overview
 
-**Wegenz Infinite Practice** is a dedicated, zero-distraction test and practice platform designed specifically for competitive exam preparation (JEE Main, JEE Advanced, and NEET). Powered by a pure local dataset of over **170,000+ past year questions**, it provides unlimited custom test generation, granular subject/chapter filtering, formula-perfect KaTeX typesetting, and comprehensive performance analytics.
+**Wegenz Infinite Practice** is a dedicated, zero-distraction test and practice platform designed specifically for competitive exam preparation (JEE Main, JEE Advanced, and NEET). Powered by a comprehensive curated archive of over **170,000+ past year questions (PYQs)** from national entrance examinations, it provides unlimited custom test generation, granular subject/chapter filtering, formula-perfect KaTeX typesetting, and comprehensive performance analytics.
 
-> [!NOTE]
-> Designed with the exact aesthetic design language of **PWX** (clean slate styling, subtle border contrasts, and crisp typography), functioning entirely as a standalone, ultra-fast application.
+> [!TIP]
+> Built for serious aspirants with a distraction-free, zero-latency interface — featuring authentic CBT exam simulation, keyboard shortcuts, formula-perfect KaTeX typesetting, and instant step-by-step video solutions.
 
 ---
 
@@ -195,9 +195,9 @@ pnpm run build
 
 ## 🛠️ Production Operations
 
-### Fire PM Service Management
+### [Fire PM](https://github.com/Fire-Package/fire-pm) Service Management
 
-The application runs as a daemonized system service managed by **Fire PM**:
+The application runs as a daemonized system service managed by **[Fire PM](https://github.com/Fire-Package/fire-pm)**:
 
 ```bash
 # Start the service
@@ -264,6 +264,16 @@ Both domains are proxied through Cloudflare with automated edge SSL certificates
 | **A** | `mock` | `<your-vps-ip>` | ☁️ Proxied |
 
 </details>
+
+---
+
+## ⚖️ Disclaimer & Fair Use
+
+This project is an open-source, non-commercial educational tool developed strictly for personal academic study, revision, and examination practice.
+
+* All past examination questions, syllabi, and related curriculum references belong to their respective examination conducting authorities (NTA, IIT Joint Admission Board, CBSE).
+* All referenced educational marks, step-by-step methodologies, and third-party resources remain the property of their respective copyright holders.
+* If you are a copyright holder and believe any content should be modified or removed, please open an issue or contact the repository maintainers.
 
 ---
 
