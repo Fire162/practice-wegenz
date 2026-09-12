@@ -1,0 +1,7 @@
+# Wegenz Infinite Practice Robots Directive
+User-agent: *
+Allow: /
+Allow: /practice/
+Disallow: /api/
+
+Sitemap: https://practice.wegenz.in/sitemap.xml

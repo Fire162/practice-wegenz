@@ -9,8 +9,10 @@ export default function Home() {
   const { bookmarks } = useBookmarks();
 
   usePageMeta({
-    title: "Infinite Practice | Wegenz",
-    description: "Choose your exam and class to start unlimited focused question practice on Wegenz.",
+    title: "Infinite Practice | Wegenz — Unlimited JEE & NEET Practice Engine",
+    description: "Free, focused question practice simulator for JEE Main, JEE Advanced, and NEET. Practise 170,000+ authentic PYQs across 208 chapters with instant KaTeX math explanations, step-by-step solutions, and video solutions.",
+    canonical: "/",
+    ogImage: "/wegenz-wordmark.jpg",
   });
 
   return (

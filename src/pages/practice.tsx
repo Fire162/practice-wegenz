@@ -3936,9 +3936,10 @@ export default function InfinitePractice() {
   }, []);
 
   usePageMeta({
-    title: `Infinite Practice | ${batchName} | Wegenz`,
-    description: `Choose a subject and chapter to practise questions from ${batchName} on Wegenz.`,
+    title: `Infinite Practice | ${batchName} — JEE & NEET PYQ Practice | Wegenz`,
+    description: `Master ${batchName} with authentic chapterwise previous year questions, instant KaTeX formula solutions, and custom test simulation on Wegenz.`,
     canonical: `/practice/${batchId}`,
+    ogImage: "/wegenz-wordmark.jpg",
   });
 
   const startQuestionRoom = (

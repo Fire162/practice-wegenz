@@ -1,12 +1,15 @@
 // Wegenz Infinite Practice - Service Worker
-const CACHE_NAME = "wegenz-practice-v2";
+const CACHE_NAME = "wegenz-practice-v3";
 const STATIC_SHELL = [
   "/",
   "/index.html",
   "/favicon.svg",
   "/wegenz-primary-mark.jpg",
   "/wegenz-app-icon.jpg",
-  "/manifest.webmanifest"
+  "/wegenz-wordmark.jpg",
+  "/manifest.webmanifest",
+  "/robots.txt",
+  "/sitemap.xml"
 ];
 
 self.addEventListener("install", (event) => {
