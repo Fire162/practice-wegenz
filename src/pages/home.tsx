@@ -39,10 +39,17 @@ export default function Home() {
               <Bookmark className="h-3.5 w-3.5 fill-amber-500 text-amber-600" />
               <span>Saved Bookmarks {bookmarks.length > 0 ? `(${bookmarks.length})` : ""}</span>
             </Link>
-            <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              Offline Ready
-            </span>
+            <div
+              className="hidden sm:inline-flex items-center gap-2 rounded-full border border-slate-800 bg-black px-3 py-1 text-xs shadow-xs"
+              title="All systems operational"
+            >
+              <span className="status-dot-wrapper">
+                <span className="status-dot"></span>
+              </span>
+              <span className="font-['JetBrains_Mono',monospace] text-[11px] font-medium tracking-tight text-[#10b981]">
+                All Systems Operational
+              </span>
+            </div>
           </div>
         </div>
       </header>
