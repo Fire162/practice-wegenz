@@ -43,6 +43,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useBookmarks } from "@/hooks/useBookmarks";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   INFINITE_PRACTICE_BATCHES,
   registerLocalPracticeSession,
@@ -343,18 +344,18 @@ function ErrorState({
 }) {
   return (
     <div
-      className="flex min-h-[360px] flex-col items-center justify-center rounded-3xl border border-rose-200 bg-white px-6 text-center"
+      className="flex min-h-[360px] flex-col items-center justify-center rounded-3xl border border-rose-200 dark:border-rose-900/40 bg-white dark:bg-slate-900 px-6 text-center"
       data-testid="state-practice-error"
     >
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">
         <CircleHelp className="h-6 w-6" />
       </div>
-      <h2 className="text-lg font-bold text-slate-900">Could not load Infinite Practice</h2>
-      <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">{message}</p>
+      <h2 className="text-lg font-bold text-slate-900 dark:text-white">Could not load Infinite Practice</h2>
+      <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500 dark:text-slate-400">{message}</p>
       <button
         data-testid="button-practice-retry"
         onClick={onRetry}
-        className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-800"
+        className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 dark:bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-slate-800 dark:hover:bg-indigo-500 transition-colors"
       >
         <RotateCcw className="h-4 w-4" /> Try again
       </button>
@@ -378,20 +379,22 @@ function ChapterRow({
       onClick={onClick}
       className={`flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition-all ${
         selected
-          ? "border-indigo-500 bg-indigo-50 text-indigo-950"
-          : "border-slate-200 bg-white text-slate-700 hover:border-indigo-300"
+          ? "border-indigo-500 dark:border-indigo-500 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-950 dark:text-indigo-200"
+          : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:border-indigo-300 dark:hover:border-indigo-700"
       }`}
     >
       <span
         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
-          selected ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300 text-transparent"
+          selected
+            ? "border-indigo-600 bg-indigo-600 text-white"
+            : "border-slate-300 dark:border-slate-600 text-transparent"
         }`}
       >
         <Check className="h-3 w-3" />
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold">{chapter.englishName}</span>
-        <span className="mt-0.5 block text-[11px] text-slate-500">
+        <span className="mt-0.5 block text-[11px] text-slate-500 dark:text-slate-400">
           {Number(chapter.questionCount || 0).toLocaleString("en-IN")} questions
         </span>
       </span>
@@ -689,12 +692,12 @@ function SelectionPanel({
   if (subjects.length === 0) {
     return (
       <div
-        className="flex min-h-[360px] flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white px-6 text-center"
+        className="flex min-h-[360px] flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 text-center"
         data-testid="state-practice-empty"
       >
-        <BookOpen className="mb-4 h-10 w-10 text-slate-300" />
-        <h2 className="text-lg font-bold text-slate-900">No practice subjects are available</h2>
-        <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
+        <BookOpen className="mb-4 h-10 w-10 text-slate-300 dark:text-slate-700" />
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white">No practice subjects are available</h2>
+        <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500 dark:text-slate-400">
           This practice catalog does not have published subjects for {batchName} yet.
         </p>
       </div>
@@ -712,16 +715,16 @@ function SelectionPanel({
     >
       {/* Shared Test Challenge Banner */}
       {sharedQuery.data && (
-        <div className="overflow-hidden rounded-3xl border-2 border-indigo-500 bg-gradient-to-r from-indigo-50 via-white to-purple-50 p-6 shadow-md">
+        <div className="overflow-hidden rounded-3xl border-2 border-indigo-500 dark:border-indigo-600 bg-gradient-to-r from-indigo-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-950 dark:to-indigo-950/40 p-6 shadow-md">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div className="space-y-1">
               <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-600 px-3 py-1 text-xs font-bold text-white shadow-xs">
                 <Users className="h-3.5 w-3.5" /> Shared Practice Challenge
               </div>
-              <h3 className="text-xl font-bold text-slate-900">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
                 You were invited to a practice challenge!
               </h3>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
                 {sharedQuery.data.questions.length} questions &bull;{" "}
                 {sharedQuery.data.subjectNames?.length
                   ? sharedQuery.data.subjectNames.join(", ")
@@ -734,7 +737,7 @@ function SelectionPanel({
             </div>
             <button
               onClick={startSharedTestNow}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 text-sm font-bold text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-950 transition hover:bg-indigo-700"
             >
               <Play className="h-4 w-4 fill-white" /> Start Challenge Now
             </button>
@@ -743,38 +746,38 @@ function SelectionPanel({
       )}
 
       {/* Step 1: Choose Subject Card */}
-      <section className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-7">
+      <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-7">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-indigo-600">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-indigo-600 dark:text-indigo-400">
               Step 01 / Choose subject
             </p>
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">What do you want to practise?</h2>
-            <p className="mt-2 text-sm text-slate-500">Choose one or more subjects, then select your chapters.</p>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">What do you want to practise?</h2>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Choose one or more subjects, then select your chapters.</p>
           </div>
           <div className="flex items-center gap-3">
             {selectedSubjectIds.length === 1 && (
-              <span className="hidden items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 sm:inline-flex">
+              <span className="hidden items-center gap-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 px-3 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 sm:inline-flex">
                 <CheckCircle2 className="h-3.5 w-3.5" /> 1 subject selected
               </span>
             )}
             {selectedSubjectIds.length > 1 && (
-              <span className="hidden items-center gap-1.5 rounded-full bg-indigo-100 px-3 py-1.5 text-xs font-bold text-indigo-800 sm:inline-flex">
+              <span className="hidden items-center gap-1.5 rounded-full bg-indigo-100 dark:bg-indigo-900/50 px-3 py-1.5 text-xs font-bold text-indigo-800 dark:text-indigo-200 sm:inline-flex">
                 <CheckCircle2 className="h-3.5 w-3.5" /> {selectedSubjectIds.length} subjects selected
               </span>
             )}
             <button
               data-testid="button-select-all-subjects"
               onClick={selectAllSubjects}
-              className="text-xs font-bold text-indigo-600 hover:text-indigo-800"
+              className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
             >
               Select all
             </button>
-            <span className="text-slate-300">&bull;</span>
+            <span className="text-slate-300 dark:text-slate-700">&bull;</span>
             <button
               data-testid="button-clear-all-subjects"
               onClick={clearAllSubjects}
-              className="text-xs font-bold text-slate-500 hover:text-slate-700"
+              className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
             >
               Clear
             </button>
@@ -792,13 +795,13 @@ function SelectionPanel({
                 onClick={() => toggleSubject(subject.subjectId)}
                 className={`flex min-h-[88px] items-center gap-3 rounded-2xl border p-4 text-left transition-all ${
                   isSelected
-                    ? "border-indigo-500 bg-indigo-50 text-indigo-950 shadow-sm"
-                    : "border-slate-200 bg-white text-slate-800 hover:-translate-y-0.5 hover:border-indigo-300"
+                    ? "border-indigo-500 dark:border-indigo-500 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-950 dark:text-indigo-100 shadow-sm"
+                    : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:-translate-y-0.5 hover:border-indigo-300 dark:hover:border-indigo-700"
                 }`}
               >
                 <span
                   className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
-                    isSelected ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-500"
+                    isSelected ? "bg-indigo-600 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
                   }`}
                 >
                   {subjectIcon(subject)}
@@ -806,14 +809,14 @@ function SelectionPanel({
                 <span className="min-w-0 flex-1">
                   <span className="block font-bold">{subject.englishName}</span>
                   {subject.hindiName && (
-                    <span className="mt-0.5 block text-xs text-slate-500">{subject.hindiName}</span>
+                    <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">{subject.hindiName}</span>
                   )}
                 </span>
                 <span
                   className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all ${
                     isSelected
                       ? "border-indigo-600 bg-indigo-600 text-white"
-                      : "border-slate-300 bg-white text-transparent"
+                      : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-transparent"
                   }`}
                 >
                   <Check className="h-3.5 w-3.5" />
@@ -827,13 +830,13 @@ function SelectionPanel({
       {/* Step 2 & Aside Configuration Section */}
       <section className="grid gap-5 lg:grid-cols-[1fr_310px]">
         {/* Step 2 / Pick Chapters */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-7">
+        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-7">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-indigo-600">
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-indigo-600 dark:text-indigo-400">
                 Step 02 / Pick chapters
               </p>
-              <h2 className="text-xl font-bold text-slate-900">Practice exactly what you need</h2>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Practice exactly what you need</h2>
             </div>
             {allAvailableChapters.length > 0 && (
               <button
@@ -843,7 +846,7 @@ function SelectionPanel({
                     ? clearAllChaptersGlobally
                     : selectAllChaptersGlobally
                 }
-                className="text-xs font-bold text-indigo-600 hover:text-indigo-800"
+                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
               >
                 {chapterIds.length === allAvailableChapters.length ? "Clear all" : "Select all"}
               </button>
@@ -852,7 +855,7 @@ function SelectionPanel({
 
           <div className="mt-5">
             {selectedSubjectIds.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-10 text-center text-sm text-slate-500">
+              <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
                 Select a subject to see its chapters.
               </div>
             ) : !isMultiSubject ? (
@@ -873,14 +876,14 @@ function SelectionPanel({
                 }
                 if (subjectData?.isError) {
                   return (
-                    <p className="rounded-2xl bg-rose-50 p-4 text-sm text-rose-700">
+                    <p className="rounded-2xl bg-rose-50 dark:bg-rose-950/50 p-4 text-sm text-rose-700 dark:text-rose-300">
                       Failed to load chapters for this subject.
                     </p>
                   );
                 }
                 if (chapters.length === 0) {
                   return (
-                    <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">
+                    <p className="rounded-2xl bg-slate-50 dark:bg-slate-800/80 p-4 text-sm text-slate-500 dark:text-slate-400">
                       No chapters are available for this subject.
                     </p>
                   );
@@ -917,15 +920,15 @@ function SelectionPanel({
                   return (
                     <div
                       key={sId}
-                      className="rounded-2xl border border-slate-200 bg-white p-4"
+                      className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4"
                     >
-                      <div className="mb-3 flex items-center justify-between border-b border-slate-100 pb-2.5">
+                      <div className="mb-3 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
                         <div className="flex items-center gap-2">
-                          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
                             {subjectIcon(subj)}
                           </span>
-                          <span className="text-sm font-bold text-slate-900">{subj.englishName}</span>
-                          <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700">
+                          <span className="text-sm font-bold text-slate-900 dark:text-white">{subj.englishName}</span>
+                          <span className="rounded-full bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 text-[11px] font-bold text-indigo-700 dark:text-indigo-300">
                             {selectedInSubj.length}/{subjChapters.length} ch
                           </span>
                         </div>
@@ -936,7 +939,7 @@ function SelectionPanel({
                             onClick={() =>
                               isAllSubjSelected ? clearForSubject(sId) : selectAllForSubject(sId)
                             }
-                            className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline"
                           >
                             {isAllSubjSelected ? "Clear" : `Select all for ${subj.englishName}`}
                           </button>
@@ -950,7 +953,7 @@ function SelectionPanel({
                           ))}
                         </div>
                       ) : subjChapters.length === 0 ? (
-                        <p className="text-xs text-slate-400">No chapters found for this subject.</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500">No chapters found for this subject.</p>
                       ) : (
                         <div className="grid gap-2 sm:grid-cols-2">
                           {subjChapters.map((chapter) => (
@@ -972,19 +975,19 @@ function SelectionPanel({
         </div>
 
         {/* Aside Configuration Sidebar */}
-        <aside className="sticky top-6 flex flex-col self-start rounded-3xl border border-indigo-100 bg-indigo-50/70 p-5 sm:p-6">
+        <aside className="sticky top-6 flex flex-col self-start rounded-3xl border border-indigo-100 dark:border-slate-800 bg-indigo-50/70 dark:bg-slate-900/90 p-5 sm:p-6">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white">
             <Sparkles className="h-5 w-5" />
           </span>
-          <h3 className="mt-4 text-lg font-bold text-indigo-950">Build your own question set</h3>
-          <p className="mt-2 text-sm leading-6 text-indigo-900/70">
+          <h3 className="mt-4 text-lg font-bold text-indigo-950 dark:text-white">Build your own question set</h3>
+          <p className="mt-2 text-sm leading-6 text-indigo-900/70 dark:text-slate-400">
             Choose difficulty, select question distribution, and start practising (max 100 questions per set).
           </p>
 
-          <div className="mt-6 space-y-5 border-t border-indigo-200/70 pt-5">
+          <div className="mt-6 space-y-5 border-t border-indigo-200/70 dark:border-slate-800 pt-5">
             {/* Practice Mode */}
             <fieldset>
-              <legend className="mb-2.5 text-sm font-bold text-indigo-950">Practice Mode</legend>
+              <legend className="mb-2.5 text-sm font-bold text-indigo-950 dark:text-white">Practice Mode</legend>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -994,13 +997,13 @@ function SelectionPanel({
                   className={`flex flex-col items-start rounded-2xl border p-3 text-left transition-all cursor-pointer ${
                     practiceMode === "EXAM"
                       ? "border-indigo-600 bg-indigo-600 text-white shadow-xs"
-                      : "border-indigo-200 bg-white text-slate-700 hover:border-indigo-300"
+                      : "border-indigo-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-slate-600"
                   }`}
                 >
                   <span className="text-xs font-black uppercase tracking-wider">Exam Mode</span>
                   <span
                     className={`mt-0.5 text-[11px] leading-tight ${
-                      practiceMode === "EXAM" ? "text-indigo-100" : "text-slate-500"
+                      practiceMode === "EXAM" ? "text-indigo-100" : "text-slate-500 dark:text-slate-400"
                     }`}
                   >
                     Solutions at test end
@@ -1014,13 +1017,13 @@ function SelectionPanel({
                   className={`flex flex-col items-start rounded-2xl border p-3 text-left transition-all cursor-pointer ${
                     practiceMode === "QUIZ"
                       ? "border-amber-600 bg-amber-600 text-white shadow-xs"
-                      : "border-indigo-200 bg-white text-slate-700 hover:border-indigo-300"
+                      : "border-indigo-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-slate-600"
                   }`}
                 >
                   <span className="text-xs font-black uppercase tracking-wider">Quiz Mode</span>
                   <span
                     className={`mt-0.5 text-[11px] leading-tight ${
-                      practiceMode === "QUIZ" ? "text-amber-100" : "text-slate-500"
+                      practiceMode === "QUIZ" ? "text-amber-100" : "text-slate-500 dark:text-slate-400"
                     }`}
                   >
                     Instant answer & solution
@@ -1031,7 +1034,7 @@ function SelectionPanel({
 
             {/* Difficulty */}
             <fieldset>
-              <legend className="mb-3 text-sm font-bold text-indigo-950">Difficulty</legend>
+              <legend className="mb-3 text-sm font-bold text-indigo-950 dark:text-white">Difficulty</legend>
               <div className="flex flex-wrap gap-2">
                 {DIFFICULTIES.map((item) => (
                   <button
@@ -1043,7 +1046,7 @@ function SelectionPanel({
                     className={`rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
                       difficulty.includes(item.value)
                         ? "border-indigo-600 bg-indigo-600 text-white"
-                        : "border-indigo-200 bg-white text-indigo-700 hover:border-indigo-300"
+                        : "border-indigo-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 hover:border-indigo-300 dark:hover:border-slate-600"
                     }`}
                   >
                     {item.label}
@@ -1054,7 +1057,7 @@ function SelectionPanel({
 
             {/* Question Types */}
             <fieldset>
-              <legend className="mb-3 text-sm font-bold text-indigo-950">Question Types</legend>
+              <legend className="mb-3 text-sm font-bold text-indigo-950 dark:text-white">Question Types</legend>
               <div className="flex flex-wrap gap-1.5">
                 {QUESTION_TYPES.map((t) => (
                   <button
@@ -1066,7 +1069,7 @@ function SelectionPanel({
                     className={`rounded-xl border px-2.5 py-1.5 text-xs font-bold transition-all ${
                       selectedTypes.includes(t.value)
                         ? "border-indigo-600 bg-indigo-600 text-white"
-                        : "border-indigo-200 bg-white text-indigo-700 hover:border-indigo-300"
+                        : "border-indigo-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 hover:border-indigo-300 dark:hover:border-slate-600"
                     }`}
                   >
                     {t.label}
@@ -1077,7 +1080,7 @@ function SelectionPanel({
 
             {/* Time Limit / Boundation */}
             <fieldset>
-              <legend className="mb-3 text-sm font-bold text-indigo-950">Time Limit / Boundation</legend>
+              <legend className="mb-3 text-sm font-bold text-indigo-950 dark:text-white">Time Limit / Boundation</legend>
               <div className="flex flex-wrap gap-2">
                 {TIME_LIMIT_OPTIONS.map((opt) => (
                   <button
@@ -1089,7 +1092,7 @@ function SelectionPanel({
                     className={`rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
                       timeLimit === opt.value
                         ? "border-indigo-600 bg-indigo-600 text-white"
-                        : "border-indigo-200 bg-white text-indigo-700 hover:border-indigo-300"
+                        : "border-indigo-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 hover:border-indigo-300 dark:hover:border-slate-600"
                     }`}
                   >
                     {opt.label}
@@ -1099,13 +1102,13 @@ function SelectionPanel({
             </fieldset>
 
             {/* Questions Configuration (Total & Subject-wise Allocation) */}
-            <div className="space-y-3 rounded-2xl border border-indigo-200/80 bg-white/70 p-3.5">
+            <div className="space-y-3 rounded-2xl border border-indigo-200/80 dark:border-slate-800 bg-white/70 dark:bg-slate-950/50 p-3.5">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-bold text-indigo-950">
+                <label className="text-sm font-bold text-indigo-950 dark:text-white">
                   Questions ({effectiveTotalQuestions})
                 </label>
                 {isMultiSubject && (
-                  <div className="flex rounded-lg border border-indigo-200 bg-indigo-50/60 p-0.5 text-[11px] font-bold">
+                  <div className="flex rounded-lg border border-indigo-200 dark:border-slate-700 bg-indigo-50/60 dark:bg-slate-800 p-0.5 text-[11px] font-bold">
                     <button
                       type="button"
                       data-testid="mode-split-equal"
@@ -1113,7 +1116,7 @@ function SelectionPanel({
                       className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${
                         allocationMode === "EQUAL"
                           ? "bg-indigo-600 text-white shadow-xs"
-                          : "text-indigo-700 hover:text-indigo-950"
+                          : "text-indigo-700 dark:text-slate-300 hover:text-indigo-950 dark:hover:text-white"
                       }`}
                     >
                       <Scale className="h-3 w-3" /> Equal split
@@ -1125,7 +1128,7 @@ function SelectionPanel({
                       className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${
                         allocationMode === "CUSTOM"
                           ? "bg-indigo-600 text-white shadow-xs"
-                          : "text-indigo-700 hover:text-indigo-950"
+                          : "text-indigo-700 dark:text-slate-300 hover:text-indigo-950 dark:hover:text-white"
                       }`}
                     >
                       <Sliders className="h-3 w-3" /> Custom
@@ -1147,7 +1150,7 @@ function SelectionPanel({
                         className={`h-8 min-w-8 rounded-lg border px-2 text-xs font-bold transition-all ${
                           totalQuestionCount === count
                             ? "border-indigo-600 bg-indigo-600 text-white"
-                            : "border-indigo-200 bg-white text-indigo-700 hover:border-indigo-300"
+                            : "border-indigo-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 hover:border-indigo-300 dark:hover:border-slate-600"
                         }`}
                       >
                         {count}
@@ -1165,7 +1168,7 @@ function SelectionPanel({
                       onChange={(e) => setTotalQuestionCount(Number(e.target.value))}
                       className="h-1.5 flex-1 cursor-pointer accent-indigo-600"
                     />
-                    <div className="flex items-center rounded-lg border border-indigo-200 bg-white px-2 py-1">
+                    <div className="flex items-center rounded-lg border border-indigo-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1">
                       <input
                         type="number"
                         min={1}
@@ -1175,14 +1178,14 @@ function SelectionPanel({
                           const val = Number(e.target.value);
                           if (val >= 1 && val <= 100) setTotalQuestionCount(val);
                         }}
-                        className="w-10 text-center text-xs font-bold text-indigo-950 focus:outline-none"
+                        className="w-10 text-center text-xs font-bold text-indigo-950 dark:text-white bg-transparent focus:outline-none"
                       />
-                      <span className="text-[10px] font-semibold text-slate-400">/100</span>
+                      <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">/100</span>
                     </div>
                   </div>
 
                   {isMultiSubject && selectedSubjectIds.length > 0 && (
-                    <p className="text-[11px] font-medium leading-4 text-indigo-900/70">
+                    <p className="text-[11px] font-medium leading-4 text-indigo-900/70 dark:text-slate-400">
                       Divided equally:{" "}
                       {selectedSubjectIds
                         .map((sId) => {
@@ -1198,7 +1201,7 @@ function SelectionPanel({
               {/* Mode: Custom Per-Subject Split */}
               {isMultiSubject && allocationMode === "CUSTOM" && (
                 <div className="space-y-2 pt-1">
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     Set specific question count for each subject (max 100 total):
                   </p>
                   <div className="space-y-2">
@@ -1208,13 +1211,13 @@ function SelectionPanel({
                       return (
                         <div
                           key={sId}
-                          className="flex items-center justify-between rounded-xl border border-indigo-100 bg-white p-2"
+                          className="flex items-center justify-between rounded-xl border border-indigo-100 dark:border-slate-800 bg-white dark:bg-slate-800/80 p-2"
                         >
                           <div className="flex items-center gap-1.5 min-w-0 pr-2">
-                            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-indigo-50 text-[10px]">
+                            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-[10px]">
                               {subj ? subjectIcon(subj) : null}
                             </span>
-                            <span className="truncate text-xs font-bold text-slate-800">
+                            <span className="truncate text-xs font-bold text-slate-800 dark:text-slate-200">
                               {subj?.englishName || "Subject"}
                             </span>
                           </div>
@@ -1222,7 +1225,7 @@ function SelectionPanel({
                             <button
                               type="button"
                               onClick={() => updateSubjectCount(sId, currentCount - 1)}
-                              className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
+                              className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-600"
                             >
                               <Minus className="h-3 w-3" />
                             </button>
@@ -1232,12 +1235,12 @@ function SelectionPanel({
                               max={100}
                               value={currentCount}
                               onChange={(e) => updateSubjectCount(sId, Number(e.target.value))}
-                              className="h-7 w-12 rounded-lg border border-indigo-200 text-center text-xs font-bold text-indigo-950 focus:border-indigo-500 focus:outline-none"
+                              className="h-7 w-12 rounded-lg border border-indigo-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-center text-xs font-bold text-indigo-950 dark:text-white focus:border-indigo-500 focus:outline-none"
                             />
                             <button
                               type="button"
                               onClick={() => updateSubjectCount(sId, currentCount + 1)}
-                              className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
+                              className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-600"
                             >
                               <Plus className="h-3 w-3" />
                             </button>
@@ -1247,20 +1250,20 @@ function SelectionPanel({
                     })}
                   </div>
 
-                  <div className="flex items-center justify-between border-t border-indigo-100 pt-2 text-xs">
-                    <span className="font-semibold text-slate-500">Total configured:</span>
+                  <div className="flex items-center justify-between border-t border-indigo-100 dark:border-slate-800 pt-2 text-xs">
+                    <span className="font-semibold text-slate-500 dark:text-slate-400">Total configured:</span>
                     <span
                       className={`font-bold ${
                         effectiveTotalQuestions > 100
                           ? "text-rose-600 font-mono"
-                          : "text-indigo-950 font-mono"
+                          : "text-indigo-950 dark:text-white font-mono"
                       }`}
                     >
                       {effectiveTotalQuestions} / 100 questions
                     </span>
                   </div>
                   {effectiveTotalQuestions > 100 && (
-                    <p className="text-[11px] font-semibold text-rose-600">
+                    <p className="text-[11px] font-semibold text-rose-600 dark:text-rose-400">
                       Total cannot exceed 100 questions.
                     </p>
                   )}
@@ -1280,7 +1283,7 @@ function SelectionPanel({
                 noFreeSessions
               }
               onClick={start}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-bold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-bold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 transition-all shadow-md shadow-indigo-200 dark:shadow-indigo-950"
             >
               {startPractice.isPending ? (
                 <>
@@ -1299,7 +1302,7 @@ function SelectionPanel({
             {startPractice.isError && (
               <p
                 className={`text-xs font-medium leading-5 ${
-                  noFreeSessions ? "text-amber-800" : "text-rose-700"
+                  noFreeSessions ? "text-amber-800 dark:text-amber-300" : "text-rose-700 dark:text-rose-300"
                 }`}
                 data-testid="status-practice-start-error"
               >
@@ -1314,13 +1317,13 @@ function SelectionPanel({
 
       {/* Mobile Sticky Bottom Start Bar */}
       {allSelectedChapters.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-3.5 shadow-xl backdrop-blur-md lg:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 p-3.5 shadow-xl backdrop-blur-md lg:hidden">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate text-xs font-bold text-slate-900">
+              <p className="truncate text-xs font-bold text-slate-900 dark:text-white">
                 {allSelectedChapters.length} ch &bull; {effectiveTotalQuestions} questions
               </p>
-              <p className="truncate text-[11px] text-slate-500">
+              <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
                 {isMultiSubject && allocationMode === "CUSTOM" ? "Custom split" : "Equal split"} &bull;{" "}
                 {timeLimit > 0 ? `${timeLimit / 60}m/Q` : "No limit"}
               </p>
@@ -1705,22 +1708,22 @@ function BookmarksModal({
           exit={{ scale: 0.95, opacity: 0, y: 16 }}
           transition={{ type: "spring", duration: 0.25 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative flex flex-col w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl"
+          className="relative flex flex-col w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl"
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-5 py-4 sm:px-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-200">
-                <Bookmark className="h-5 w-5 fill-amber-500 text-amber-600" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50">
+                <Bookmark className="h-5 w-5 fill-amber-500 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900 sm:text-lg flex items-center gap-2">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white sm:text-lg flex items-center gap-2">
                   Saved Bookmarks
-                  <span className="rounded-full bg-amber-100 text-amber-900 px-2.5 py-0.5 text-xs font-bold">
+                  <span className="rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 px-2.5 py-0.5 text-xs font-bold">
                     {bookmarks.length}
                   </span>
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Questions you saved during practice for revision and re-testing
                 </p>
               </div>
@@ -1728,14 +1731,14 @@ function BookmarksModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-700 transition cursor-pointer"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
           {/* Controls Bar: Subject Tabs & Search */}
-          <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/50 px-5 py-3 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             {/* Subject filter tabs */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
               {subjects.map((subj) => (
@@ -1746,7 +1749,7 @@ function BookmarksModal({
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
                     selectedSubject === subj
                       ? "bg-indigo-600 text-white shadow-xs"
-                      : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                      : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
                   }`}
                 >
                   {subj === "ALL" ? "All Subjects" : subj}
@@ -1765,7 +1768,7 @@ function BookmarksModal({
                 placeholder="Search questions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-xs font-medium text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none"
+                className="h-9 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-3 text-xs font-medium text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
               />
             </div>
           </div>
@@ -1774,13 +1777,13 @@ function BookmarksModal({
           <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
             {filteredBookmarks.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-amber-50 text-amber-500 border border-amber-200 mb-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-amber-50 dark:bg-amber-950/40 text-amber-500 border border-amber-200 dark:border-amber-900/50 mb-4">
                   <Bookmark className="h-8 w-8 text-amber-500" />
                 </div>
-                <h4 className="text-base font-bold text-slate-800">
+                <h4 className="text-base font-bold text-slate-800 dark:text-slate-200">
                   {bookmarks.length === 0 ? "No saved bookmarks yet" : "No matching questions"}
                 </h4>
-                <p className="mt-1.5 max-w-sm text-xs text-slate-500 leading-relaxed">
+                <p className="mt-1.5 max-w-sm text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                   {bookmarks.length === 0
                     ? "While practising questions, click the Bookmark button or press 'B' on any question to save it here for later revision."
                     : "Try selecting another subject or clearing your search query."}
@@ -1794,15 +1797,15 @@ function BookmarksModal({
                 return (
                   <div
                     key={qItem.questionId}
-                    className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs transition hover:border-slate-300"
+                    className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs transition hover:border-slate-300 dark:hover:border-slate-700"
                   >
                     {/* Card Top Metadata */}
-                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3 mb-3">
+                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="rounded-lg bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700">
+                        <span className="rounded-lg bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 text-[11px] font-bold text-indigo-700 dark:text-indigo-300">
                           {qItem.subjectName || "Subject"}
                         </span>
-                        <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700">
+                        <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-bold text-slate-700 dark:text-slate-300">
                           {qItem.chapterName || "Chapter"}
                         </span>
                         <span className="text-xs text-slate-400">
@@ -1828,15 +1831,15 @@ function BookmarksModal({
                                 });
                               }
                             }}
-                            className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1 text-[11px] font-bold text-indigo-700 hover:bg-indigo-100 transition cursor-pointer"
+                            className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition cursor-pointer"
                           >
-                            <Play className="h-3 w-3 fill-indigo-600" /> Video
+                            <Play className="h-3 w-3 fill-indigo-600 dark:fill-indigo-400" /> Video
                           </button>
                         )}
                         <button
                           type="button"
                           onClick={() => removeBookmark(qItem.questionId)}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 transition cursor-pointer"
+                          className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:border-rose-200 dark:hover:border-rose-900/50 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer"
                           title="Remove bookmark"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -1847,7 +1850,7 @@ function BookmarksModal({
                     {/* Question Content */}
                     <HtmlContent
                       html={qItem.content || qItem.plainQuestionText}
-                      className="text-sm leading-relaxed text-slate-900 mb-3 [&_img]:max-h-[220px]"
+                      className="text-sm leading-relaxed text-slate-900 dark:text-slate-100 mb-3 [&_img]:max-h-[220px]"
                     />
 
                     {/* Options Preview */}
@@ -1858,16 +1861,16 @@ function BookmarksModal({
                             key={oIdx}
                             className={`flex items-start gap-2 rounded-xl p-2.5 text-xs border ${
                               isExpanded && opt.isCorrect
-                                ? "border-emerald-400 bg-emerald-50/80 text-emerald-950 font-medium"
-                                : "border-slate-100 bg-slate-50/60 text-slate-700"
+                                ? "border-emerald-400 dark:border-emerald-600 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200 font-medium"
+                                : "border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300"
                             }`}
                           >
-                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded font-bold bg-white border border-slate-200 text-[10px]">
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded font-bold bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-[10px] text-slate-800 dark:text-slate-200">
                               {String.fromCharCode(65 + oIdx)}
                             </span>
                             <HtmlContent html={opt.text} className="min-w-0 flex-1 [&_p]:mb-0" />
                             {isExpanded && opt.isCorrect && (
-                              <span className="shrink-0 text-emerald-600 font-bold text-[10px]">
+                              <span className="shrink-0 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
                                 Correct
                               </span>
                             )}
@@ -1878,9 +1881,9 @@ function BookmarksModal({
 
                     {/* Numerical Expected Answer */}
                     {qItem.numericAnswer !== undefined && qItem.numericAnswer !== null && (
-                      <div className="my-2 inline-flex items-center gap-2 rounded-xl bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-900 border border-sky-200">
+                      <div className="my-2 inline-flex items-center gap-2 rounded-xl bg-sky-50 dark:bg-sky-950/50 px-3 py-1.5 text-xs font-semibold text-sky-900 dark:text-sky-200 border border-sky-200 dark:border-sky-800">
                         <span>Answer value:</span>
-                        <code className="font-mono bg-white px-2 py-0.5 rounded border border-sky-300 font-bold">
+                        <code className="font-mono bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-sky-300 dark:border-sky-700 font-bold text-slate-900 dark:text-white">
                           {String(qItem.numericAnswer)}
                         </code>
                       </div>
@@ -1888,11 +1891,11 @@ function BookmarksModal({
 
                     {/* Expand/Collapse Solution Button */}
                     {qItem.solutions && qItem.solutions.length > 0 && (
-                      <div className="mt-3 border-t border-slate-100 pt-2.5 flex items-center justify-between">
+                      <div className="mt-3 border-t border-slate-100 dark:border-slate-800 pt-2.5 flex items-center justify-between">
                         <button
                           type="button"
                           onClick={() => toggleSolution(qItem.questionId)}
-                          className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition cursor-pointer"
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition cursor-pointer"
                         >
                           <Sparkles className="h-3.5 w-3.5" />
                           <span>{isExpanded ? "Hide Solution" : "View Step-by-Step Solution"}</span>
@@ -1905,9 +1908,9 @@ function BookmarksModal({
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
-                        className="mt-3 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3.5 text-xs"
+                        className="mt-3 rounded-xl border border-indigo-100 dark:border-slate-800 bg-indigo-50/40 dark:bg-slate-950/60 p-3.5 text-xs"
                       >
-                        <p className="font-bold text-indigo-900 mb-1.5 uppercase tracking-wider text-[10px]">
+                        <p className="font-bold text-indigo-900 dark:text-indigo-300 mb-1.5 uppercase tracking-wider text-[10px]">
                           Explanation:
                         </p>
                         {qItem.solutions.map((sol, sIdx) => (
@@ -1915,7 +1918,7 @@ function BookmarksModal({
                             {sol.text && (
                               <HtmlContent
                                 html={sol.text}
-                                className="leading-relaxed text-slate-800 [&_img]:my-2 [&_img]:max-h-[250px]"
+                                className="leading-relaxed text-slate-800 dark:text-slate-200 [&_img]:my-2 [&_img]:max-h-[250px]"
                               />
                             )}
                           </div>
@@ -1930,7 +1933,7 @@ function BookmarksModal({
 
           {/* Sticky Modal Bottom Action Bar */}
           {filteredBookmarks.length > 0 && (
-            <div className="border-t border-slate-100 bg-white px-5 py-3.5 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-3.5 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => {
@@ -1938,21 +1941,21 @@ function BookmarksModal({
                     clearBookmarks();
                   }
                 }}
-                className="text-xs font-semibold text-rose-600 hover:text-rose-700 transition cursor-pointer self-start sm:self-auto"
+                className="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 transition cursor-pointer self-start sm:self-auto"
               >
                 Clear all bookmarks
               </button>
 
               <div className="flex flex-wrap items-center gap-2.5">
                 {/* Mode Selector */}
-                <div className="flex items-center rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-bold">
+                <div className="flex items-center rounded-xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 text-xs font-bold">
                   <button
                     type="button"
                     onClick={() => setSelectedMode("EXAM")}
                     className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
                       selectedMode === "EXAM"
-                        ? "bg-white text-indigo-700 shadow-xs"
-                        : "text-slate-600 hover:text-slate-900"
+                        ? "bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-300 shadow-xs"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
                     Exam Mode
@@ -1962,8 +1965,8 @@ function BookmarksModal({
                     onClick={() => setSelectedMode("QUIZ")}
                     className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
                       selectedMode === "QUIZ"
-                        ? "bg-white text-indigo-700 shadow-xs"
-                        : "text-slate-600 hover:text-slate-900"
+                        ? "bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-300 shadow-xs"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
                     Quiz Mode
@@ -1973,7 +1976,7 @@ function BookmarksModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="h-10 rounded-xl border border-slate-200 px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                  className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 px-4 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
                 >
                   Close
                 </button>
@@ -2351,26 +2354,26 @@ function QuestionRoom({
             type="button"
             data-testid="button-leave-practice"
             onClick={onExit}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
             title="Exit practice"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <p className="truncate text-xs font-bold uppercase tracking-[0.14em] text-indigo-600">Infinite Practice</p>
+              <p className="truncate text-xs font-bold uppercase tracking-[0.14em] text-indigo-600 dark:text-indigo-400">Infinite Practice</p>
               {practiceMode === "QUIZ" ? (
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200">
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 text-[11px] font-bold text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50">
                   <Zap className="h-3 w-3 fill-amber-500 text-amber-500" /> Quiz Mode
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700 border border-indigo-200">
+                <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 dark:bg-indigo-950/50 px-2 py-0.5 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/50">
                   Exam Mode
                 </span>
               )}
             </div>
-            <p className="text-sm font-semibold text-slate-700">
-              Question {index + 1} <span className="font-normal text-slate-400">of {session.questions.length}</span>
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              Question {index + 1} <span className="font-normal text-slate-400 dark:text-slate-500">of {session.questions.length}</span>
             </p>
           </div>
         </div>
@@ -2380,30 +2383,31 @@ function QuestionRoom({
             type="button"
             onClick={handleShareInRoom}
             disabled={shareTest.isPending}
-            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
             title="Share this test set with friends"
           >
-            <Share2 className="h-3.5 w-3.5 text-indigo-600" />
+            <Share2 className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
             <span className="hidden sm:inline">{shareFeedback || "Share"}</span>
           </button>
 
-          <span className="hidden items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-600 sm:inline-flex">
-            <Target className="h-3.5 w-3.5 text-indigo-600" /> {question.subjectName || "JEE 2026"}
+          <span className="hidden items-center gap-1.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 sm:inline-flex">
+            <Target className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" /> {question.subjectName || "JEE 2026"}
           </span>
           <button
             data-testid="button-submit-test"
             disabled={submitTest.isPending || loadSolution.isPending}
             onClick={submit}
-            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 text-xs font-bold text-indigo-700 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-950/60 px-3 text-xs font-bold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
           >
             {submitTest.isPending || loadSolution.isPending
               ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Submitting...</>
               : "Submit test"}
           </button>
+          <ThemeToggle />
         </div>
       </div>
-      <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-slate-200">
-        <motion.div animate={{ width: `${progress}%` }} className="h-full rounded-full bg-indigo-600" />
+      <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+        <motion.div animate={{ width: `${progress}%` }} className="h-full rounded-full bg-indigo-600 dark:bg-indigo-500" />
       </div>
 
       {/* In-Room Question Navigation Strip */}
@@ -2415,7 +2419,7 @@ function QuestionRoom({
           const isChecked = checkedQuestions[q.questionId];
 
           // For Quiz mode, evaluate whether this question was answered correctly
-          let quizPillStyle = "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50";
+          let quizPillStyle = "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800";
           if (isCurrent) {
             quizPillStyle = "bg-indigo-600 text-white ring-2 ring-indigo-600 ring-offset-1 shadow-sm";
           } else if (practiceMode === "QUIZ" && isChecked) {
@@ -2435,10 +2439,10 @@ function QuestionRoom({
               pillCorrect = !isNaN(uN) && !isNaN(cN) ? Math.abs(uN - cN) < 0.001 : String(pillSelected[0]).trim() === String(q.numericAnswer).trim();
             }
             quizPillStyle = pillCorrect
-              ? "bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200"
-              : "bg-rose-100 text-rose-800 border border-rose-300 hover:bg-rose-200";
+              ? "border-emerald-300 dark:border-emerald-800 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900/60"
+              : "border-rose-300 dark:border-rose-800 bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-900/60";
           } else if (isAnswered) {
-            quizPillStyle = "bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200";
+            quizPillStyle = "border-emerald-300 dark:border-emerald-800 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900/60";
           }
 
           return (
@@ -2474,25 +2478,25 @@ function QuestionRoom({
           initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -10 }}
-          className="practice-question-canvas rounded-3xl border border-slate-200 p-5 shadow-sm sm:p-8"
+          className="practice-question-canvas rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm sm:p-8"
         >
-          <div className="mb-6 flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="mb-6 flex items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="truncate text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+              <span className="truncate text-xs font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
                 {question.chapterName || "Practice question"}
               </span>
               {question.type === 2 && (
-                <span className="rounded-md bg-purple-50 px-2 py-0.5 text-[11px] font-bold text-purple-700">
+                <span className="rounded-md bg-purple-50 dark:bg-purple-950/50 px-2 py-0.5 text-[11px] font-bold text-purple-700 dark:text-purple-300">
                   Multiple Correct
                 </span>
               )}
               {question.type === 8 && (
-                <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">
+                <span className="rounded-md bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 text-[11px] font-bold text-amber-700 dark:text-amber-300">
                   Comprehension
                 </span>
               )}
               {(question.type === 3 || (!question.options || question.options.length === 0)) && (
-                <span className="rounded-md bg-sky-50 px-2 py-0.5 text-[11px] font-bold text-sky-700">
+                <span className="rounded-md bg-sky-50 dark:bg-sky-950/50 px-2 py-0.5 text-[11px] font-bold text-sky-700 dark:text-sky-300">
                   Numerical / Integer
                 </span>
               )}
@@ -2506,8 +2510,8 @@ function QuestionRoom({
                 onClick={() => onToggleBookmark?.(question)}
                 className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-bold transition-all cursor-pointer ${
                   bookmarkedIds.includes(question.questionId)
-                    ? "bg-amber-100 text-amber-900 border border-amber-300 shadow-xs"
-                    : "bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200"
+                    ? "bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-900/50 shadow-xs"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
                 }`}
                 title={
                   bookmarkedIds.includes(question.questionId)
@@ -2517,12 +2521,12 @@ function QuestionRoom({
               >
                 {bookmarkedIds.includes(question.questionId) ? (
                   <>
-                    <BookmarkCheck className="h-3.5 w-3.5 fill-amber-500 text-amber-700" />
+                    <BookmarkCheck className="h-3.5 w-3.5 fill-amber-500 text-amber-700 dark:text-amber-400" />
                     <span>Bookmarked</span>
                   </>
                 ) : (
                   <>
-                    <Bookmark className="h-3.5 w-3.5 text-slate-500" />
+                    <Bookmark className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
                     <span className="hidden sm:inline">Bookmark</span>
                   </>
                 )}
@@ -2532,39 +2536,39 @@ function QuestionRoom({
                 className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-bold font-mono tracking-tight transition-colors ${
                   timeLimitSeconds > 0
                     ? isTimeRunningOut
-                      ? "bg-rose-100 text-rose-700 animate-pulse border border-rose-200"
-                      : "bg-amber-50 text-amber-800 border border-amber-200"
-                    : "bg-slate-100 text-slate-700 border border-slate-200"
+                      ? "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 animate-pulse border border-rose-200 dark:border-rose-900/50"
+                      : "bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
                 }`}
                 title={timeLimitSeconds > 0 ? `Time left for this question (${formatClock(secondsRemaining)})` : "Time spent on this question"}
               >
-                <Timer className={`h-3.5 w-3.5 ${isTimeRunningOut ? "text-rose-600 animate-spin" : "text-slate-500"}`} />
+                <Timer className={`h-3.5 w-3.5 ${isTimeRunningOut ? "text-rose-600 dark:text-rose-400 animate-spin" : "text-slate-500 dark:text-slate-400"}`} />
                 {timeLimitSeconds > 0 ? (
                   <span>{formatClock(secondsRemaining)} / {formatClock(timeLimitSeconds)}</span>
                 ) : (
                   <span>{formatClock(elapsedSeconds)}</span>
                 )}
               </span>
-              <span className="shrink-0 text-xs text-slate-400">{question.typeTitle || "Question"}</span>
+              <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500">{question.typeTitle || "Question"}</span>
             </div>
           </div>
 
           {/* Parent Passage / Context if Comprehension Question */}
           {question.parentQuestion?.content && (
-            <div className="mb-6 rounded-2xl border border-amber-200/80 bg-amber-50/50 p-4 sm:p-5">
-              <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-800">
+            <div className="mb-6 rounded-2xl border border-amber-200/80 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-950/30 p-4 sm:p-5">
+              <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
                 <span>📖 Reading Passage / Context</span>
               </div>
               <HtmlContent
                 html={question.parentQuestion.content}
-                className="text-sm leading-relaxed text-slate-800 [&_img]:my-3 [&_img]:max-h-[300px]"
+                className="text-sm leading-relaxed text-slate-800 dark:text-slate-200 [&_img]:my-3 [&_img]:max-h-[300px]"
               />
             </div>
           )}
 
           <HtmlContent
             html={question.content || question.plainQuestionText}
-            className="mb-7 text-[17px] leading-8 text-slate-900 [&_img]:my-4 [&_img]:max-h-[420px]"
+            className="mb-7 text-[17px] leading-8 text-slate-900 dark:text-slate-100 [&_img]:my-4 [&_img]:max-h-[420px]"
             testId="text-practice-question"
           />
 
@@ -2578,35 +2582,35 @@ function QuestionRoom({
 
                 // Styling logic for Quiz feedback vs normal test
                 let optionStyle = isSelected
-                  ? "border-indigo-500 bg-indigo-50"
-                  : "border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50";
+                  ? "border-indigo-500 dark:border-indigo-500 bg-indigo-50 dark:bg-indigo-950/60 text-slate-900 dark:text-white"
+                  : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 hover:border-indigo-300 dark:hover:border-indigo-600 hover:bg-slate-50 dark:hover:bg-slate-800/80";
 
                 let badgeBadge = null;
 
                 if (isCheckedInQuiz) {
                   if (isCorrectOption && isSelected) {
-                    optionStyle = "border-emerald-500 bg-emerald-50/90 text-emerald-950 ring-1 ring-emerald-500";
+                    optionStyle = "border-emerald-500 dark:border-emerald-500 bg-emerald-50/90 dark:bg-emerald-950/60 text-emerald-950 dark:text-emerald-200 ring-1 ring-emerald-500";
                     badgeBadge = (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
-                        <Check className="h-3 w-3 text-emerald-600" /> Your Correct Choice
+                      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 text-[11px] font-bold text-emerald-800 dark:text-emerald-200">
+                        <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" /> Your Correct Choice
                       </span>
                     );
                   } else if (isCorrectOption && !isSelected) {
-                    optionStyle = "border-emerald-500 bg-emerald-50/70 text-emerald-950 ring-1 ring-emerald-500";
+                    optionStyle = "border-emerald-500 dark:border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200 ring-1 ring-emerald-500";
                     badgeBadge = (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
-                        <Check className="h-3 w-3 text-emerald-600" /> Correct Answer
+                      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 text-[11px] font-bold text-emerald-800 dark:text-emerald-200">
+                        <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" /> Correct Answer
                       </span>
                     );
                   } else if (isSelected && !isCorrectOption) {
-                    optionStyle = "border-rose-400 bg-rose-50/90 text-rose-950 ring-1 ring-rose-400";
+                    optionStyle = "border-rose-400 dark:border-rose-600 bg-rose-50/90 dark:bg-rose-950/60 text-rose-950 dark:text-rose-200 ring-1 ring-rose-400";
                     badgeBadge = (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-800">
-                        <X className="h-3 w-3 text-rose-600" /> Your Answer
+                      <span className="inline-flex items-center gap-1 rounded-md bg-rose-100 dark:bg-rose-900/60 px-2 py-0.5 text-[11px] font-bold text-rose-800 dark:text-rose-200">
+                        <X className="h-3 w-3 text-rose-600 dark:text-rose-400" /> Your Answer
                       </span>
                     );
                   } else {
-                    optionStyle = "border-slate-200 bg-slate-50/40 text-slate-400 opacity-60";
+                    optionStyle = "border-slate-200 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/40 text-slate-400 dark:text-slate-500 opacity-60";
                   }
                 }
 
@@ -2641,8 +2645,8 @@ function QuestionRoom({
                             : isSelected
                             ? "bg-indigo-600 text-white"
                             : question.type === 2
-                            ? "border-2 border-slate-300 bg-white text-slate-600"
-                            : "bg-slate-100 text-slate-600"
+                            ? "border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                            : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
                         }`}
                       >
                         {isCheckedInQuiz ? (
@@ -2661,7 +2665,7 @@ function QuestionRoom({
                       </span>
                       <HtmlContent
                         html={option.text}
-                        className="min-w-0 flex-1 pt-0.5 text-sm leading-6 text-slate-800 [&_p]:mb-0"
+                        className="min-w-0 flex-1 pt-0.5 text-sm leading-6 text-slate-800 dark:text-slate-200 [&_p]:mb-0"
                       />
                     </div>
                     {badgeBadge && <div className="shrink-0 self-center pl-2">{badgeBadge}</div>}
@@ -2671,8 +2675,8 @@ function QuestionRoom({
             </div>
           ) : (
             /* Numeric / Integer Keypad & Input Box */
-            <div className="my-6 rounded-2xl border border-sky-200 bg-sky-50/40 p-5">
-              <p className="text-xs font-bold uppercase tracking-wider text-sky-800 mb-2">
+            <div className="my-6 rounded-2xl border border-sky-200 dark:border-sky-900/50 bg-sky-50/40 dark:bg-sky-950/30 p-5">
+              <p className="text-xs font-bold uppercase tracking-wider text-sky-800 dark:text-sky-300 mb-2">
                 Enter Numerical / Integer Value:
               </p>
               <div className="flex flex-wrap items-center gap-3">
@@ -2690,16 +2694,16 @@ function QuestionRoom({
                   className={`h-11 w-48 rounded-xl border px-3.5 text-base font-semibold focus:outline-none ${
                     isCheckedInQuiz
                       ? isAnswerCorrect
-                        ? "border-emerald-400 bg-emerald-50 text-emerald-950"
-                        : "border-rose-400 bg-rose-50 text-rose-950"
-                      : "border-slate-300 bg-white text-slate-900 focus:border-indigo-500"
+                        ? "border-emerald-400 dark:border-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-950 dark:text-emerald-200"
+                        : "border-rose-400 dark:border-rose-600 bg-rose-50 dark:bg-rose-950/50 text-rose-950 dark:text-rose-200"
+                      : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:border-indigo-500"
                   }`}
                 />
                 {!isCheckedInQuiz && selected.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setSelected([])}
-                    className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer"
+                    className="h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer"
                   >
                     Clear
                   </button>
@@ -2708,15 +2712,15 @@ function QuestionRoom({
 
               {isCheckedInQuiz && (
                 <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
-                  <span className="font-bold text-slate-600">
-                    Correct value: <code className="bg-white px-2 py-0.5 rounded border border-slate-200 font-mono text-slate-900">{String(question.numericAnswer ?? "")}</code>
+                  <span className="font-bold text-slate-600 dark:text-slate-400">
+                    Correct value: <code className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono text-slate-900 dark:text-white">{String(question.numericAnswer ?? "")}</code>
                   </span>
                   {isAnswerCorrect ? (
-                    <span className="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                    <span className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md">
                       <CheckCircle2 className="h-3.5 w-3.5" /> Correct (+4 pts)
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-md">
+                    <span className="inline-flex items-center gap-1 font-bold text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/60 px-2 py-0.5 rounded-md">
                       <XCircle className="h-3.5 w-3.5" /> Incorrect (-1 pt)
                     </span>
                   )}
@@ -2736,8 +2740,8 @@ function QuestionRoom({
               <div
                 className={`flex items-center justify-between gap-3 rounded-2xl p-4 sm:p-5 border ${
                   isAnswerCorrect
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                    : "border-rose-200 bg-rose-50 text-rose-900"
+                    ? "border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200"
+                    : "border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200"
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -2763,10 +2767,10 @@ function QuestionRoom({
 
               {/* KaTeX Step-by-Step Solution & Inline Video Solution Button */}
               {question.solutions && question.solutions.length > 0 && (
-                <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4 sm:p-5">
-                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-indigo-100/80 pb-3">
-                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-900">
-                      <Sparkles className="h-4 w-4 text-indigo-600" />
+                <div className="rounded-2xl border border-indigo-100 dark:border-slate-800 bg-indigo-50/40 dark:bg-slate-950/60 p-4 sm:p-5">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-indigo-100/80 dark:border-slate-800 pb-3">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-900 dark:text-indigo-300">
+                      <Sparkles className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                       <span>Step-by-Step Solution</span>
                     </div>
                     {question.solutions.some((s) => s.videoSolution?.url) && (
@@ -2798,7 +2802,7 @@ function QuestionRoom({
                         {sol.text && (
                           <HtmlContent
                             html={sol.text}
-                            className="text-sm leading-relaxed text-slate-800 [&_img]:my-3 [&_img]:max-h-[350px]"
+                            className="text-sm leading-relaxed text-slate-800 dark:text-slate-200 [&_img]:my-3 [&_img]:max-h-[350px]"
                           />
                         )}
                       </div>
@@ -2810,9 +2814,9 @@ function QuestionRoom({
           )}
 
           {/* Action Navigation Footer */}
-          <div className="mt-7 flex flex-col gap-4 border-t border-slate-100 pt-5">
+          <div className="mt-7 flex flex-col gap-4 border-t border-slate-100 dark:border-slate-800 pt-5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 dark:text-slate-500">
                 {practiceMode === "QUIZ"
                   ? isCheckedInQuiz
                     ? "Explanation displayed. Proceed to next question."
@@ -2828,7 +2832,7 @@ function QuestionRoom({
                   data-testid="button-previous-question"
                   disabled={index === 0 || submitTest.isPending || loadSolution.isPending}
                   onClick={previous}
-                  className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+                  className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" /> Previous
                 </button>
@@ -2840,7 +2844,7 @@ function QuestionRoom({
                         data-testid="button-skip-question"
                         disabled={submitTest.isPending || loadSolution.isPending}
                         onClick={skip}
-                        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+                        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/40 px-3 text-xs font-bold text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                       >
                         Skip
                       </button>
@@ -2848,7 +2852,7 @@ function QuestionRoom({
                         data-testid="button-check-answer"
                         disabled={selected.length === 0 || submitTest.isPending || loadSolution.isPending}
                         onClick={checkAnswerInQuiz}
-                        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
+                        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-4 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 cursor-pointer"
                       >
                         <Zap className="h-3.5 w-3.5 fill-current" /> Check Answer
                       </button>
@@ -2862,7 +2866,7 @@ function QuestionRoom({
                       }
                       disabled={submitTest.isPending || loadSolution.isPending}
                       onClick={next}
-                      className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-4 text-xs font-bold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
+                      className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-slate-900 dark:bg-indigo-600 px-4 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 cursor-pointer"
                     >
                       {submitTest.isPending || loadSolution.isPending ? (
                         <>
@@ -2883,7 +2887,7 @@ function QuestionRoom({
                       data-testid="button-skip-question"
                       disabled={submitTest.isPending || loadSolution.isPending}
                       onClick={skip}
-                      className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+                      className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/40 px-3 text-xs font-bold text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                     >
                       Skip question
                     </button>
@@ -2895,7 +2899,7 @@ function QuestionRoom({
                       }
                       disabled={selected.length === 0 || submitTest.isPending || loadSolution.isPending}
                       onClick={next}
-                      className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-4 text-xs font-bold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
+                      className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-slate-900 dark:bg-indigo-600 px-4 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 cursor-pointer"
                     >
                       {submitTest.isPending || loadSolution.isPending ? (
                         <>
@@ -2914,7 +2918,7 @@ function QuestionRoom({
             </div>
             {submitError && (
               <div
-                className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700"
+                className="rounded-xl bg-rose-50 dark:bg-rose-950/60 p-3 text-sm text-rose-700 dark:text-rose-300"
                 data-testid="status-practice-submit-error"
               >
                 {submitError}
@@ -2923,15 +2927,15 @@ function QuestionRoom({
           </div>
 
           {/* Keyboard Shortcuts Hint Bar */}
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 pt-3 text-[11px] text-slate-600">
-            <span className="font-semibold text-slate-700">Keyboard shortcuts:</span>
-            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-600 border border-slate-200">1-4</span> Select
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 dark:border-slate-800 pt-3 text-[11px] text-slate-600 dark:text-slate-400">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Keyboard shortcuts:</span>
+            <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">1-4</span> Select
             <span>•</span>
-            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-600 border border-slate-200">↑/↓</span> Cycle
+            <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">↑/↓</span> Cycle
             <span>•</span>
-            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-600 border border-slate-200">←/→</span> Question
+            <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">←/→</span> Question
             <span>•</span>
-            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-600 border border-slate-200">B</span> Bookmark
+            <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">B</span> Bookmark
           </div>
         </motion.article>
       </AnimatePresence>
@@ -3176,7 +3180,7 @@ function Completion({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
-      className="mx-auto max-w-4xl rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-8 md:p-10"
+      className="mx-auto max-w-4xl rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm sm:p-8 md:p-10"
       data-testid="state-practice-complete"
     >
       {/* Motivational Hero Section */}
@@ -3191,7 +3195,7 @@ function Completion({
 
         <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
           {batchName && (
-            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+            <span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
               {batchName}
             </span>
           )}
@@ -3203,10 +3207,10 @@ function Completion({
           </span>
         </div>
 
-        <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+        <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
           Practice set finished
         </h2>
-        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600 sm:text-base">
+        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-400 sm:text-base">
           {totalCorrect + totalIncorrect === 0
             ? "You skipped all questions in this session. Review the step-by-step solutions below and give it another shot!"
             : performanceTier.subtitle}
@@ -3217,7 +3221,7 @@ function Completion({
           <button
             data-testid="button-practice-retry-same"
             onClick={onRetry}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-bold text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 active:scale-[0.98]"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-bold text-white shadow-md shadow-indigo-200 dark:shadow-indigo-950 transition hover:bg-indigo-700 active:scale-[0.98]"
           >
             <RotateCcw className="h-4 w-4" /> Retry this test
           </button>
@@ -3226,7 +3230,7 @@ function Completion({
             data-testid="button-practice-share"
             disabled={shareTest.isPending}
             onClick={handleShare}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-5 text-sm font-bold text-indigo-700 transition hover:bg-indigo-100 active:scale-[0.98]"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-950/60 px-5 text-sm font-bold text-indigo-700 dark:text-indigo-300 transition hover:bg-indigo-100 dark:hover:bg-indigo-900/60 active:scale-[0.98]"
           >
             {shareTest.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -3239,9 +3243,9 @@ function Completion({
           <button
             data-testid="button-practice-again"
             onClick={onRestart}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 shadow-2xs transition hover:bg-slate-50 active:scale-[0.98]"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-5 text-sm font-bold text-slate-700 dark:text-slate-200 shadow-2xs transition hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-[0.98]"
           >
-            <Plus className="h-4 w-4 text-slate-500" /> New set
+            <Plus className="h-4 w-4 text-slate-500 dark:text-slate-400" /> New set
           </button>
         </div>
       </div>
@@ -3251,17 +3255,17 @@ function Completion({
         {/* Score */}
         <div
           data-testid="stat-score"
-          className="flex flex-col justify-between rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/70 to-indigo-50/20 p-4 text-left"
+          className="flex flex-col justify-between rounded-2xl border border-indigo-100 dark:border-indigo-900/50 bg-gradient-to-br from-indigo-50/70 to-indigo-50/20 dark:from-indigo-950/40 dark:to-slate-900/90 p-4 text-left"
         >
-          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-indigo-600">
+          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
             <span>Score</span>
-            <Award className="h-4 w-4 text-indigo-500" />
+            <Award className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
           </div>
           <div className="mt-2">
-            <p className="text-2xl font-extrabold text-indigo-950 sm:text-3xl">
+            <p className="text-2xl font-extrabold text-indigo-950 dark:text-white sm:text-3xl">
               {score > 0 ? `+${score}` : score}
             </p>
-            <p className="mt-0.5 text-xs text-indigo-600/80">
+            <p className="mt-0.5 text-xs text-indigo-600/80 dark:text-indigo-400/80">
               Max {totalQuestions * 4} pts
             </p>
           </div>
@@ -3270,17 +3274,17 @@ function Completion({
         {/* Accuracy with Progress Gauge */}
         <div
           data-testid="stat-accuracy"
-          className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4 text-left shadow-2xs"
+          className="flex flex-col justify-between rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-left shadow-2xs"
         >
-          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             <span>Accuracy</span>
             <Target className="h-4 w-4 text-slate-400" />
           </div>
           <div className="mt-2">
-            <p className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
+            <p className="text-2xl font-extrabold text-slate-900 dark:text-white sm:text-3xl">
               {accuracy}%
             </p>
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${performanceTier.barColor}`}
                 style={{ width: `${Math.min(100, Math.max(0, accuracy))}%` }}
@@ -3292,17 +3296,17 @@ function Completion({
         {/* Total Time */}
         <div
           data-testid="stat-total-time"
-          className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4 text-left shadow-2xs"
+          className="flex flex-col justify-between rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-left shadow-2xs"
         >
-          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             <span>Total Time</span>
             <Clock className="h-4 w-4 text-slate-400" />
           </div>
           <div className="mt-2">
-            <p className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
+            <p className="text-2xl font-extrabold text-slate-900 dark:text-white sm:text-3xl">
               {totalTimeTakenMs > 0 ? formatDuration(totalTimeTakenMs) : "—"}
             </p>
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
               {timeLimitSeconds > 0 ? `${timeLimitSeconds}s / Q limit` : "No time limit"}
             </p>
           </div>
@@ -3311,21 +3315,21 @@ function Completion({
         {/* Avg Pace */}
         <div
           data-testid="stat-avg-pace"
-          className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4 text-left shadow-2xs"
+          className="flex flex-col justify-between rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-left shadow-2xs"
         >
-          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             <span>Avg Pace</span>
             <Timer className="h-4 w-4 text-slate-400" />
           </div>
           <div className="mt-2">
-            <p className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
+            <p className="text-2xl font-extrabold text-slate-900 dark:text-white sm:text-3xl">
               {totalTimeTakenMs > 0
                 ? formatDuration(
                     Math.round(totalTimeTakenMs / Math.max(1, questionSolutions.length)),
                   )
                 : "—"}
             </p>
-            <p className="mt-0.5 text-xs text-slate-500">Per question</p>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Per question</p>
           </div>
         </div>
       </div>
@@ -3335,20 +3339,20 @@ function Completion({
         {/* Correct Card */}
         <div
           data-testid="stat-card-correct"
-          className="rounded-2xl border border-emerald-200/80 bg-emerald-50/40 p-4 text-left sm:p-5"
+          className="rounded-2xl border border-emerald-200/80 dark:border-emerald-900/40 bg-emerald-50/40 dark:bg-emerald-950/20 p-4 text-left sm:p-5"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
               Correct
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400">
               <CheckCircle2 className="h-5 w-5" />
             </div>
           </div>
-          <p className="mt-2 text-3xl font-extrabold text-emerald-950 sm:text-4xl">
+          <p className="mt-2 text-3xl font-extrabold text-emerald-950 dark:text-emerald-100 sm:text-4xl">
             {totalCorrect}
           </p>
-          <div className="mt-1 flex items-center justify-between text-xs font-medium text-emerald-700">
+          <div className="mt-1 flex items-center justify-between text-xs font-medium text-emerald-700 dark:text-emerald-400">
             <span>
               {totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0}% of test
             </span>
@@ -3359,20 +3363,20 @@ function Completion({
         {/* Incorrect Card */}
         <div
           data-testid="stat-card-incorrect"
-          className="rounded-2xl border border-rose-200/80 bg-rose-50/40 p-4 text-left sm:p-5"
+          className="rounded-2xl border border-rose-200/80 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20 p-4 text-left sm:p-5"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-rose-800">
+            <span className="text-xs font-bold uppercase tracking-wider text-rose-800 dark:text-rose-300">
               Incorrect
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400">
               <XCircle className="h-5 w-5" />
             </div>
           </div>
-          <p className="mt-2 text-3xl font-extrabold text-rose-950 sm:text-4xl">
+          <p className="mt-2 text-3xl font-extrabold text-rose-950 dark:text-rose-100 sm:text-4xl">
             {totalIncorrect}
           </p>
-          <div className="mt-1 flex items-center justify-between text-xs font-medium text-rose-700">
+          <div className="mt-1 flex items-center justify-between text-xs font-medium text-rose-700 dark:text-rose-400">
             <span>
               {totalQuestions > 0 ? Math.round((totalIncorrect / totalQuestions) * 100) : 0}% of test
             </span>
@@ -3383,20 +3387,20 @@ function Completion({
         {/* Skipped Card */}
         <div
           data-testid="stat-card-skipped"
-          className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-left sm:p-5"
+          className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/50 p-4 text-left sm:p-5"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
               Skipped
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-200/70 text-slate-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
               <MinusCircle className="h-5 w-5" />
             </div>
           </div>
-          <p className="mt-2 text-3xl font-extrabold text-slate-900 sm:text-4xl">
+          <p className="mt-2 text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
             {totalSkipped}
           </p>
-          <div className="mt-1 flex items-center justify-between text-xs font-medium text-slate-500">
+          <div className="mt-1 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
             <span>
               {totalQuestions > 0 ? Math.round((totalSkipped / totalQuestions) * 100) : 0}% of test
             </span>
@@ -3407,17 +3411,17 @@ function Completion({
 
       {/* Quick Jump Question Navigation Palette */}
       {questionSolutions.length > 0 && (
-        <div className="mt-8 rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 sm:p-5 text-left">
+        <div className="mt-8 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 p-4 sm:p-5 text-left">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                 Question Palette
               </span>
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-slate-400 dark:text-slate-500">
                 ({questionSolutions.length} questions)
               </span>
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-[11px] font-medium text-slate-500">
+            <div className="flex flex-wrap items-center gap-3 text-[11px] font-medium text-slate-500 dark:text-slate-400">
               <span className="inline-flex items-center gap-1">
                 <span className="h-2 w-2 rounded-full bg-emerald-500" /> Correct
               </span>
@@ -3428,7 +3432,7 @@ function Completion({
                 <span className="h-2 w-2 rounded-full bg-slate-400" /> Skipped
               </span>
               <span className="inline-flex items-center gap-1">
-                <Bookmark className="h-3 w-3 fill-amber-500 text-amber-600" /> Bookmarked
+                <Bookmark className="h-3 w-3 fill-amber-500 text-amber-600 dark:text-amber-400" /> Bookmarked
               </span>
             </div>
           </div>
@@ -3441,10 +3445,10 @@ function Completion({
               const isMarkedBookmarked = bookmarkedIds.includes(item.questionId);
               const pillStyles =
                 qStatus === "CORRECT"
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300"
+                  ? "border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 hover:border-emerald-300"
                   : qStatus === "INCORRECT"
-                  ? "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:border-rose-300"
-                  : "border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200 hover:border-slate-300";
+                  ? "border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 hover:border-rose-300"
+                  : "border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:border-slate-300";
 
               return (
                 <button
@@ -3475,7 +3479,7 @@ function Completion({
 
       {/* Interactive Filter Tabs */}
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="inline-flex flex-wrap gap-1.5 rounded-2xl border border-slate-200 bg-slate-100/80 p-1">
+        <div className="inline-flex flex-wrap gap-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/60 p-1">
           {(
             [
               { key: "ALL", label: "All", count: totalQuestions, icon: null, activeColor: "" },
@@ -3484,28 +3488,28 @@ function Completion({
                 label: "Correct",
                 count: totalCorrect,
                 icon: CheckCircle2,
-                activeColor: "text-emerald-600",
+                activeColor: "text-emerald-600 dark:text-emerald-400",
               },
               {
                 key: "INCORRECT",
                 label: "Incorrect",
                 count: totalIncorrect,
                 icon: XCircle,
-                activeColor: "text-rose-600",
+                activeColor: "text-rose-600 dark:text-rose-400",
               },
               {
                 key: "SKIPPED",
                 label: "Skipped",
                 count: totalSkipped,
                 icon: MinusCircle,
-                activeColor: "text-slate-500",
+                activeColor: "text-slate-500 dark:text-slate-400",
               },
               {
                 key: "BOOKMARKED",
                 label: "Bookmarked",
                 count: bookmarkedIds.length,
                 icon: BookmarkCheck,
-                activeColor: "text-amber-600",
+                activeColor: "text-amber-600 dark:text-amber-400",
               },
             ] as const
           ).map((tab) => {
@@ -3519,8 +3523,8 @@ function Completion({
                 onClick={() => setFilterTab(tab.key)}
                 className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
                   isActive
-                    ? "bg-white text-slate-950 shadow-xs ring-1 ring-slate-950/5"
-                    : "text-slate-600 hover:bg-white/60 hover:text-slate-900"
+                    ? "bg-white dark:bg-slate-900 text-slate-950 dark:text-white shadow-xs ring-1 ring-slate-950/5 dark:ring-white/10"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 {Icon && <Icon className={`h-3.5 w-3.5 ${tab.activeColor}`} />}
@@ -3528,8 +3532,8 @@ function Completion({
                 <span
                   className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
                     isActive
-                      ? "bg-slate-100 text-slate-700"
-                      : "bg-slate-200/60 text-slate-500"
+                      ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+                      : "bg-slate-200/60 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400"
                   }`}
                 >
                   {tab.count}
@@ -3538,15 +3542,15 @@ function Completion({
             );
           })}
         </div>
-        <p className="text-xs font-medium text-slate-500">
+        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
           Showing {filteredQuestions.length} of {totalQuestions} questions
         </p>
       </div>
 
       {/* Filter Empty State */}
       {filteredQuestions.length === 0 && (
-        <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 p-8 text-center">
-          <p className="text-sm font-semibold text-slate-700">
+        <div className="mt-6 rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-8 text-center">
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
             {filterTab === "CORRECT"
               ? "No correct questions yet. Don't be discouraged — mistakes are where real learning happens!"
               : filterTab === "INCORRECT"
@@ -3561,7 +3565,7 @@ function Completion({
             type="button"
             data-testid="button-view-all-questions"
             onClick={() => setFilterTab("ALL")}
-            className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 hover:underline"
+            className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline"
           >
             View all {totalQuestions} questions <ArrowRight className="h-3 w-3" />
           </button>
@@ -3592,30 +3596,30 @@ function Completion({
                 key={`${item.questionId}-${qNum}`}
                 id={`review-question-${qNum}`}
                 data-testid={`solution-card-${qNum}`}
-                className={`scroll-mt-6 rounded-3xl border bg-white p-5 shadow-xs transition-all duration-300 sm:p-7 ${
+                className={`scroll-mt-6 rounded-3xl border bg-white dark:bg-slate-900 p-5 shadow-xs transition-all duration-300 sm:p-7 ${
                   isHighlighted
                     ? "border-indigo-500 ring-2 ring-indigo-500/40 shadow-md"
-                    : "border-slate-200 hover:border-slate-300"
+                    : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
                 }`}
               >
                 {/* Header: Question Number, Status Badge, Time, and Chapter */}
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-4">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                       Question {qNum}
                     </span>
                     {qStatus === "CORRECT" && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
                         <CheckCircle2 className="h-3.5 w-3.5" /> Correct (+4)
                       </span>
                     )}
                     {qStatus === "INCORRECT" && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-xs font-bold text-rose-700">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-0.5 text-xs font-bold text-rose-700 dark:text-rose-400">
                         <XCircle className="h-3.5 w-3.5" /> Incorrect (-1)
                       </span>
                     )}
                     {qStatus === "SKIPPED" && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-bold text-slate-600 dark:text-slate-300">
                         <MinusCircle className="h-3.5 w-3.5" /> Skipped (0)
                       </span>
                     )}
@@ -3623,18 +3627,18 @@ function Completion({
 
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     {(item.subjectName || sessionQ?.subjectName) && (
-                      <span className="rounded-lg bg-indigo-50/60 px-2 py-0.5 font-semibold text-indigo-700">
+                      <span className="rounded-lg bg-indigo-50/60 dark:bg-indigo-950/40 px-2 py-0.5 font-semibold text-indigo-700 dark:text-indigo-300">
                         {item.subjectName || sessionQ?.subjectName}
                       </span>
                     )}
                     {(item.chapterName || sessionQ?.chapterName) && (
-                      <span className="hidden max-w-[200px] truncate rounded-lg bg-slate-100 px-2 py-0.5 font-medium text-slate-600 sm:inline-block">
+                      <span className="hidden max-w-[200px] truncate rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-medium text-slate-600 dark:text-slate-300 sm:inline-block">
                         {item.chapterName || sessionQ?.chapterName}
                       </span>
                     )}
                     {item.timeTaken !== undefined && item.timeTaken > 0 && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-slate-600">
-                        <Clock className="h-3 w-3 text-slate-400" />
+                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 font-medium text-slate-600 dark:text-slate-300">
+                        <Clock className="h-3 w-3 text-slate-400 dark:text-slate-500" />
                         {formatDuration(item.timeTaken)}
                       </span>
                     )}
@@ -3644,19 +3648,19 @@ function Completion({
                       onClick={() => onToggleBookmark?.(sessionQ || (item as any))}
                       className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold transition-all cursor-pointer ${
                         bookmarkedIds.includes(item.questionId)
-                          ? "bg-amber-100 text-amber-900 border border-amber-300 shadow-xs"
-                          : "bg-slate-100 text-slate-500 hover:bg-slate-200 border border-slate-200"
+                          ? "bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 shadow-xs"
+                          : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700"
                       }`}
                       title={bookmarkedIds.includes(item.questionId) ? "Remove bookmark" : "Bookmark question"}
                     >
                       {bookmarkedIds.includes(item.questionId) ? (
                         <>
-                          <BookmarkCheck className="h-3.5 w-3.5 fill-amber-500 text-amber-700" />
+                          <BookmarkCheck className="h-3.5 w-3.5 fill-amber-500 text-amber-700 dark:text-amber-400" />
                           <span>Bookmarked</span>
                         </>
                       ) : (
                         <>
-                          <Bookmark className="h-3.5 w-3.5 text-slate-400" />
+                          <Bookmark className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
                           <span>Bookmark</span>
                         </>
                       )}
@@ -3666,13 +3670,13 @@ function Completion({
 
                 {/* Comprehension / Passage Context if present */}
                 {parentContent && (
-                  <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 sm:p-5">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <div className="mt-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/60 p-4 sm:p-5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                       Passage / Context
                     </span>
                     <HtmlContent
                       html={parentContent}
-                      className="mt-2 text-sm leading-relaxed text-slate-700"
+                      className="mt-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300"
                     />
                   </div>
                 )}
@@ -3681,7 +3685,7 @@ function Completion({
                 <div className="mt-4">
                   <HtmlContent
                     html={item.content}
-                    className="text-sm sm:text-base leading-relaxed text-slate-900 font-medium"
+                    className="text-sm sm:text-base leading-relaxed text-slate-900 dark:text-slate-100 font-medium"
                   />
                 </div>
 
@@ -3694,13 +3698,13 @@ function Completion({
                       const isOptionCorrect = Boolean(option.isCorrect);
                       const isUserChoice = markedSolutions.includes(optNumber);
 
-                      let cardStyle = "border-slate-200 bg-white text-slate-700";
-                      let letterStyle = "bg-slate-100 text-slate-600";
+                      let cardStyle = "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300";
+                      let letterStyle = "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400";
                       let badge = null;
 
                       if (isOptionCorrect && isUserChoice) {
                         cardStyle =
-                          "border-2 border-emerald-500 bg-emerald-50/60 text-emerald-950 ring-1 ring-emerald-500/20";
+                          "border-2 border-emerald-500 dark:border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200 ring-1 ring-emerald-500/20";
                         letterStyle = "bg-emerald-600 text-white font-bold";
                         badge = (
                           <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-bold text-white shadow-2xs">
@@ -3709,17 +3713,17 @@ function Completion({
                         );
                       } else if (isOptionCorrect && !isUserChoice) {
                         cardStyle =
-                          "border-2 border-emerald-400 bg-emerald-50/30 text-emerald-950";
+                          "border-2 border-emerald-400 dark:border-emerald-500/80 bg-emerald-50/30 dark:bg-emerald-950/20 text-emerald-950 dark:text-emerald-200";
                         letterStyle =
-                          "border-2 border-emerald-500 bg-emerald-100 text-emerald-800 font-bold";
+                          "border-2 border-emerald-500 dark:border-emerald-400 bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 font-bold";
                         badge = (
-                          <span className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800">
+                          <span className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-emerald-300 dark:border-emerald-700 bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:text-emerald-300">
                             <Check className="h-3.5 w-3.5" /> Correct Answer
                           </span>
                         );
                       } else if (!isOptionCorrect && isUserChoice) {
                         cardStyle =
-                          "border-2 border-rose-400 bg-rose-50/60 text-rose-950 ring-1 ring-rose-400/20";
+                          "border-2 border-rose-400 dark:border-rose-500 bg-rose-50/60 dark:bg-rose-950/40 text-rose-950 dark:text-rose-200 ring-1 ring-rose-400/20";
                         letterStyle = "bg-rose-600 text-white font-bold";
                         badge = (
                           <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-rose-600 px-2.5 py-1 text-xs font-bold text-white shadow-2xs">
@@ -3742,13 +3746,13 @@ function Completion({
                             <div className="min-w-0 flex-1 pt-0.5">
                               <HtmlContent
                                 html={option.text}
-                                className="text-sm leading-6 text-slate-800 [&_p]:mb-0"
+                                className="text-sm leading-6 text-slate-800 dark:text-slate-200 [&_p]:mb-0"
                               />
                               {option.imageUrl && (
                                 <img
                                   src={option.imageUrl}
                                   alt={`Option ${optLetter}`}
-                                  className="mt-2 max-h-44 rounded-lg border border-slate-200 bg-white object-contain"
+                                  className="mt-2 max-h-44 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 object-contain"
                                 />
                               )}
                             </div>
@@ -3760,21 +3764,21 @@ function Completion({
                   </div>
                 ) : (
                   /* Numerical / Integer Question Summary */
-                  <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+                  <div className="mt-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 p-4 sm:p-5">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
                       Numerical Value Comparison
                     </p>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div
                         className={`rounded-xl border p-3.5 ${
                           qStatus === "CORRECT"
-                            ? "border-emerald-300 bg-emerald-50/60 text-emerald-950"
+                            ? "border-emerald-300 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200"
                             : qStatus === "INCORRECT"
-                            ? "border-rose-300 bg-rose-50/60 text-rose-950"
-                            : "border-slate-200 bg-white text-slate-800"
+                            ? "border-rose-300 dark:border-rose-800 bg-rose-50/60 dark:bg-rose-950/40 text-rose-950 dark:text-rose-200"
+                            : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200"
                         }`}
                       >
-                        <span className="text-xs font-semibold text-slate-500">
+                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                           Your Answer:
                         </span>
                         <p className="mt-1 text-base font-bold">
@@ -3783,11 +3787,11 @@ function Completion({
                             : "Skipped / Unattempted"}
                         </p>
                       </div>
-                      <div className="rounded-xl border border-emerald-300 bg-emerald-50/60 p-3.5 text-emerald-950">
-                        <span className="text-xs font-semibold text-emerald-700">
+                      <div className="rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/40 p-3.5 text-emerald-950 dark:text-emerald-200">
+                        <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
                           Correct Value:
                         </span>
-                        <p className="mt-1 text-base font-bold text-emerald-900">
+                        <p className="mt-1 text-base font-bold text-emerald-900 dark:text-emerald-300">
                           {sessionQ?.numericAnswer !== undefined &&
                           sessionQ?.numericAnswer !== null
                             ? String(sessionQ.numericAnswer)
@@ -3800,10 +3804,10 @@ function Completion({
 
                 {/* Step-by-Step Solution Box */}
                 {(solution?.text || solution?.videoSolution?.url) && (
-                  <div className="mt-5 overflow-hidden rounded-2xl border border-indigo-100 bg-gradient-to-b from-indigo-50/40 to-white">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-100/80 bg-indigo-50/60 px-4 py-3 sm:px-5">
-                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-900">
-                        <BookOpen className="h-4 w-4 text-indigo-600" />
+                  <div className="mt-5 overflow-hidden rounded-2xl border border-indigo-100 dark:border-indigo-950/80 bg-gradient-to-b from-indigo-50/40 dark:from-indigo-950/20 to-white dark:to-slate-900">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-100/80 dark:border-indigo-950/80 bg-indigo-50/60 dark:bg-indigo-950/40 px-4 py-3 sm:px-5">
+                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-900 dark:text-indigo-300">
+                        <BookOpen className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                         <span>Step-by-Step Solution</span>
                       </div>
                       {solution?.videoSolution?.url && (() => {
@@ -3828,13 +3832,13 @@ function Completion({
                       })()}
                     </div>
                     {solution?.text && (
-                      <div className="p-4 sm:p-5 text-sm leading-relaxed text-slate-700 font-normal">
+                      <div className="p-4 sm:p-5 text-sm leading-relaxed text-slate-700 dark:text-slate-300 font-normal">
                         <HtmlContent html={solution.text} />
                       </div>
                     )}
                     {solution?.otherSolution && (
-                      <div className="border-t border-indigo-100/60 p-4 sm:p-5 text-sm text-slate-600">
-                        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                      <div className="border-t border-indigo-100/60 dark:border-indigo-950/60 p-4 sm:p-5 text-sm text-slate-600 dark:text-slate-400">
+                        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                           Alternative Method
                         </p>
                         <HtmlContent html={solution.otherSolution} />
@@ -3849,31 +3853,31 @@ function Completion({
       )}
 
       {/* Footer Bottom Actions Bar */}
-      <div className="mt-10 rounded-3xl border border-slate-200 bg-slate-50/60 p-6 text-center sm:p-8">
-        <h3 className="text-lg font-bold text-slate-900">Ready for another challenge?</h3>
-        <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+      <div className="mt-10 rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 p-6 text-center sm:p-8">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Ready for another challenge?</h3>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
           Try another round to solidify your understanding or explore new chapters.
         </p>
         <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
           <button
             data-testid="button-practice-footer-retry"
             onClick={onRetry}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-bold text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-bold text-white shadow-md shadow-indigo-200 dark:shadow-indigo-950/50 transition hover:bg-indigo-700"
           >
             <RotateCcw className="h-4 w-4" /> Retry this test
           </button>
           <button
             data-testid="button-practice-footer-new"
             onClick={onRestart}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 shadow-2xs transition hover:bg-slate-50"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 text-sm font-bold text-slate-700 dark:text-slate-200 shadow-2xs transition hover:bg-slate-50 dark:hover:bg-slate-700/80"
           >
-            <Plus className="h-4 w-4 text-slate-500" /> New set
+            <Plus className="h-4 w-4 text-slate-500 dark:text-slate-400" /> New set
           </button>
           <button
             data-testid="button-practice-footer-share"
             disabled={shareTest.isPending}
             onClick={handleShare}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-5 text-sm font-bold text-indigo-700 transition hover:bg-indigo-100"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/50 px-5 text-sm font-bold text-indigo-700 dark:text-indigo-300 transition hover:bg-indigo-100 dark:hover:bg-indigo-900/50"
           >
             {shareTest.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -3891,9 +3895,9 @@ function Completion({
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           data-testid="button-back-to-top"
-          className="fixed bottom-6 right-6 z-30 inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 px-4 py-2.5 text-xs font-bold text-slate-700 shadow-lg backdrop-blur-sm transition-all hover:bg-slate-50 active:scale-95"
+          className="fixed bottom-6 right-6 z-30 inline-flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-lg backdrop-blur-sm transition-all hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95"
         >
-          <ArrowUp className="h-4 w-4 text-indigo-600" /> Back to top
+          <ArrowUp className="h-4 w-4 text-indigo-600 dark:text-indigo-400" /> Back to top
         </button>
       )}
 
@@ -3962,37 +3966,38 @@ export default function InfinitePractice() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white text-slate-900" data-testid="page-infinite-practice">
+    <div className="min-h-screen w-full bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100" data-testid="page-infinite-practice">
       <main className="mx-auto min-h-screen max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         {roomState === "selection" && (
           <div className="mx-auto max-w-6xl">
             <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
               <div>
-                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700">
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-indigo-100 dark:border-indigo-900/60 bg-indigo-50 dark:bg-indigo-950/40 px-3 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-400">
                   <FileQuestion className="h-3.5 w-3.5" /> Your practice room
                 </div>
-                <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-                  Infinite Practice<span className="text-indigo-600">.</span>
+                <h1 className="text-3xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-4xl">
+                  Infinite Practice<span className="text-indigo-600 dark:text-indigo-400">.</span>
                 </h1>
-                <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
+                <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500 dark:text-slate-400 sm:text-base">
                   Pick a subject, chapter, difficulty, and question count. Practise at your own pace.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+                <ThemeToggle />
                 <button
                   type="button"
                   data-testid="button-open-bookmarks-hub"
                   onClick={() => setShowBookmarksModal(true)}
-                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 text-xs font-bold text-amber-900 shadow-xs hover:bg-amber-100 transition cursor-pointer"
+                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-amber-200 dark:border-amber-800/80 bg-amber-50 dark:bg-amber-950/50 px-3.5 text-xs font-bold text-amber-900 dark:text-amber-300 shadow-xs hover:bg-amber-100 dark:hover:bg-amber-900/60 transition cursor-pointer"
                   title="Open your saved bookmarked questions"
                 >
-                  <Bookmark className="h-4 w-4 fill-amber-500 text-amber-600" />
+                  <Bookmark className="h-4 w-4 fill-amber-500 text-amber-600 dark:text-amber-400" />
                   <span>Saved Bookmarks {bookmarks.length > 0 ? `(${bookmarks.length})` : ""}</span>
                 </button>
                 <Link
                   data-testid="link-practice-back"
                   href="/"
-                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 sm:self-auto"
+                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 sm:self-auto"
                 >
                   <ArrowLeft className="h-4 w-4" /> All tracks
                 </Link>
