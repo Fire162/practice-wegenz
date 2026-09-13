@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+* Uninstalled `dashjs` video player dependency, removing 860 KiB of unused player code.
+
+### Changed
+* Statically imported `Home` component in `App.tsx` to eliminate initial loading spinner waterfall on root path.
+* Replaced Dash video player with a lightweight stream link fallback in `practice.tsx`.
+* Removed redundant KaTeX CSS preload link from `index.html`.
+* Targeted modern `es2022` JavaScript in `vite.config.ts`.
+
 ### Fixed
 * Resolved empty solution evaluation and zero-score fallback when submitting tests started from saved bookmarks or shared test codes ([#3](https://github.com/Fire162/practice-wegenz/pull/3)).
 
