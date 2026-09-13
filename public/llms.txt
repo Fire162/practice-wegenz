@@ -1,0 +1,25 @@
+# Wegenz Infinite Practice
+
+> High-performance educational question simulator and CBT mock examination engine for JEE Main, JEE Advanced, and NEET aspirants with 170,000+ authentic previous year questions.
+
+Wegenz Infinite Practice provides unlimited custom practice sessions across 208 chapters with instant KaTeX math rendering, step-by-step solutions, and video explanations.
+
+## Core Examination Tracks
+
+- [Class 11th JEE Practice](https://wegenz.in/practice/11th_JEE): Dedicated practice track for Class 11 JEE Main & Advanced covering Physics, Chemistry, and Mathematics.
+- [Class 12th JEE Practice](https://wegenz.in/practice/12th_JEE): Dedicated practice track for Class 12 JEE Main & Advanced covering Physics, Chemistry, and Mathematics.
+- [Class 11th NEET Practice](https://wegenz.in/practice/11th_NEET): Dedicated practice track for Class 11 NEET covering Physics, Chemistry, Botany, and Zoology.
+- [Class 12th NEET Practice](https://wegenz.in/practice/12th_NEET): Dedicated practice track for Class 12 NEET covering Physics, Chemistry, Botany, and Zoology.
+
+## Capabilities & Architecture
+
+- [Saved Bookmarks Hub](https://wegenz.in/practice/11th_JEE?bookmarks=open): Persistent offline question vault to bookmark challenging PYQs and practise them in focused custom sessions.
+- [Web Manifest](https://wegenz.in/manifest.webmanifest): Progressive Web App manifest configuration for offline installability.
+- [Sitemap](https://wegenz.in/sitemap.xml): Search engine indexing sitemap.
+- [Robots Directives](https://wegenz.in/robots.txt): Crawler indexing policies.
+
+## Features & Simulation
+
+- **Dual Modes**: Exam Mode (timed simulation) and Quiz Mode (instant solution and video explanation per question).
+- **Keyboard Navigation**: Full keyboard shortcut support for CBT test-taking (<kbd>1</kbd>–<kbd>4</kbd>, <kbd>ArrowLeft</kbd>/<kbd>ArrowRight</kbd>, <kbd>B</kbd> for bookmark).
+- **Fast KaTeX Typesetting**: High-contrast mathematical and chemical formula rendering in both Light and Dark themes.

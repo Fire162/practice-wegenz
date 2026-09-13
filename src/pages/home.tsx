@@ -21,8 +21,11 @@ export default function Home() {
         <div className="mx-auto max-w-5xl px-4 py-3 sm:px-6 lg:px-8 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img
-              src="/wegenz-primary-mark.jpg"
+              src="/wegenz-primary-mark-96.webp"
               alt="Wegenz Logo"
+              width="36"
+              height="36"
+              decoding="async"
               className="h-9 w-9 rounded-xl object-cover shadow-sm shadow-indigo-200 dark:shadow-indigo-950 border border-slate-200/50 dark:border-slate-800"
             />
             <div>

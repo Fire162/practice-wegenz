@@ -1,0 +1,28 @@
+# Wegenz Infinite Practice — Full System Specification
+
+> Comprehensive system reference and developer guide for AI agents and LLM indexers covering architecture, exam tracks, chapters, keyboard navigation, and client APIs.
+
+## Platform Summary
+- Platform Name: Wegenz Infinite Practice
+- Canonical URL: https://wegenz.in
+- Purpose: Free, focused question practice and mock examination engine for Indian national engineering and medical entrance examinations (JEE Main, JEE Advanced, NEET-UG).
+- Dataset: 170,000+ authentic previous year examination questions across 208 chapters.
+- Formula Rendering: KaTeX mathematical typesetting engine with full dark theme support.
+
+## Available Practice Tracks
+- [11th JEE Main & Advanced](https://wegenz.in/practice/11th_JEE): Covers Class 11 Physics, Chemistry, and Mathematics.
+- [12th JEE Main & Advanced](https://wegenz.in/practice/12th_JEE): Covers Class 12 Physics, Chemistry, and Mathematics.
+- [11th NEET-UG](https://wegenz.in/practice/11th_NEET): Covers Class 11 Physics, Chemistry, Botany, and Zoology.
+- [12th NEET-UG](https://wegenz.in/practice/12th_NEET): Covers Class 12 Physics, Chemistry, Botany, and Zoology.
+
+## API Integration & Proxy Pipeline
+- `/api/subjects`: Fetches all academic subjects and question counts for a selected class/track.
+- `/api/chapters?subjectId={id}`: Fetches all chapters for a given subject.
+- `/api/random`: Generates randomized PYQ test sets filtered by subject, chapter, and difficulty.
+- `/api/img/{token}`: Serves encrypted subject icons.
+
+## Keyboard Shortcuts
+- Options Selection: 1, 2, 3, 4
+- Navigation: Left Arrow (Previous Question), Right Arrow (Next Question / Check Answer)
+- Options Cycling: Up Arrow, Down Arrow
+- Bookmark Toggle: B
