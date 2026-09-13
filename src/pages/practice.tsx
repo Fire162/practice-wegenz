@@ -1380,111 +1380,35 @@ function getVideoType(url?: string | null): VideoType | null {
 }
 
 function DashPlayer({ url }: { url: string }) {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [isProtected, setIsProtected] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    let player: any = null;
-    let cancelled = false;
-
-    async function initPlayer() {
-      try {
-        const dashjs = await import("dashjs");
-        if (cancelled || !videoRef.current) return;
-
-        player = dashjs.MediaPlayer().create();
-        player.initialize(videoRef.current, url, true);
-
-        player.on(dashjs.MediaPlayer.events.CAN_PLAY, () => {
-          if (!cancelled) {
-            setIsLoading(false);
-            setIsProtected(false);
-          }
-        });
-
-        player.on(dashjs.MediaPlayer.events.ERROR, (e: any) => {
-          console.warn("[dashjs] Stream error:", e);
-          if (!cancelled) {
-            setIsLoading(false);
-            setIsProtected(true);
-          }
-        });
-      } catch (err) {
-        console.error("Failed to load dashjs", err);
-        if (!cancelled) {
-          setIsLoading(false);
-          setIsProtected(true);
-        }
-      }
-    }
-
-    initPlayer();
-
-    return () => {
-      cancelled = true;
-      if (player) {
-        try {
-          player.reset();
-        } catch {}
-      }
-    };
-  }, [url]);
-
-  if (isProtected) {
-    return (
-      <div className="flex flex-col items-center justify-center p-6 sm:p-10 text-center text-slate-300 min-h-[320px] sm:min-h-[420px] bg-slate-950">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400 mb-4 shadow-inner">
-          <ShieldAlert className="h-7 w-7" />
-        </div>
-        <h4 className="text-base font-bold text-white sm:text-lg">Protected CloudFront Video Stream</h4>
-        <p className="mt-2 max-w-lg text-xs sm:text-sm text-slate-400 leading-relaxed">
-          This MPEG-DASH stream is hosted on a protected CloudFront CDN with AWS Restricted Viewer Access. CloudFront requires signed tokens (<code className="text-amber-400 bg-amber-950/60 px-1 py-0.5 rounded text-[11px]">Key-Pair-Id / Policy / Signature</code>) to stream.
-        </p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => {
-              navigator.clipboard.writeText(url);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 3000);
-            }}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-700 cursor-pointer"
-          >
-            <Copy className="h-3.5 w-3.5" /> {copied ? "Stream URL Copied!" : "Copy Stream URL"}
-          </button>
-          <a
-            href={url}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-indigo-700"
-          >
-            <ExternalLink className="h-3.5 w-3.5" /> Try Direct Link
-          </a>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="relative w-full aspect-video bg-black flex items-center justify-center">
-      {isLoading && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/70 text-slate-300">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-500 mb-2" />
-          <p className="text-xs font-medium">Connecting to MPEG-DASH stream…</p>
-        </div>
-      )}
-      <video
-        ref={videoRef}
-        controls
-        autoPlay
-        playsInline
-        className="h-full w-full object-contain"
-      />
+    <div className="flex flex-col items-center justify-center p-6 sm:p-10 text-center text-slate-300 min-h-[320px] sm:min-h-[420px] bg-slate-950">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400 mb-4 shadow-inner">
+        <ShieldAlert className="h-7 w-7" />
+      </div>
+      <h4 className="text-base font-bold text-white sm:text-lg">Protected Video Stream</h4>
+      <p className="mt-2 max-w-lg text-xs sm:text-sm text-slate-400 leading-relaxed">
+        This video stream requires authenticated session access. Please refer to the step-by-step KaTeX solution below for the complete explanation.
+      </p>
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(url);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2500);
+          }}
+          className="inline-flex items-center gap-2 rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-2 text-xs font-bold text-slate-200 transition border border-slate-700 cursor-pointer"
+        >
+          {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+          <span>{copied ? "Stream URL Copied" : "Copy Stream URL"}</span>
+        </button>
+      </div>
     </div>
   );
 }
+
+
 
 function DirectPlayer({ url }: { url: string }) {
   return (
@@ -2974,10 +2898,6 @@ function Completion({
   const [activeVideo, setActiveVideo] = useState<ActiveVideoModalData | null>(null);
   const shareTest = useShareInfinitePractice();
 
-  useEffect(() => {
-    // Prefetch dashjs in background so .mpd videos open with zero delay
-    import("dashjs").catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (!activeVideo) return;

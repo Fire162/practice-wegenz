@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import { Switch, Route } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const Home = lazy(() => import("@/pages/home"));
+import Home from "@/pages/home";
 const Practice = lazy(() => import("@/pages/practice"));
 
 const queryClient = new QueryClient({

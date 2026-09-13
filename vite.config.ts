@@ -15,6 +15,9 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "src"),
       },
     },
+    build: {
+      target: "es2022",
+    },
     server: {
       port: 5100,
       host: "0.0.0.0",

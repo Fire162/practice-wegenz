@@ -12,7 +12,6 @@
   "dependencies": {
     "@tanstack/react-query": "^5.62.7",
     "clsx": "^2.1.1",
-    "dashjs": "^5.2.1",
     "framer-motion": "^12.4.7",
     "katex": "^0.16.21",
     "lucide-react": "^0.475.0",
