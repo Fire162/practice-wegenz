@@ -4,4 +4,4 @@ Allow: /
 Allow: /practice/
 Disallow: /api/
 
-Sitemap: https://practice.wegenz.in/sitemap.xml
+Sitemap: https://wegenz.in/sitemap.xml

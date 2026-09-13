@@ -48,7 +48,7 @@ export function usePageMeta({
     if (canonical) {
       const fullCanonical = canonical.startsWith("http")
         ? canonical
-        : `https://practice.wegenz.in${canonical.startsWith("/") ? "" : "/"}${canonical}`;
+        : `https://wegenz.in${canonical.startsWith("/") ? "" : "/"}${canonical}`;
 
       let link = document.querySelector('link[rel="canonical"]');
       if (!link) {
@@ -64,7 +64,7 @@ export function usePageMeta({
     if (ogImage) {
       const fullImage = ogImage.startsWith("http")
         ? ogImage
-        : `https://practice.wegenz.in${ogImage.startsWith("/") ? "" : "/"}${ogImage}`;
+        : `https://wegenz.in${ogImage.startsWith("/") ? "" : "/"}${ogImage}`;
       setMetaProperty("og:image", fullImage);
       setMetaName("twitter:image", fullImage);
     }
