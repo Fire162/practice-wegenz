@@ -3856,8 +3856,8 @@ export default function InfinitePractice() {
   }, []);
 
   usePageMeta({
-    title: `Infinite Practice | ${batchName} — JEE & NEET PYQ Practice | Wegenz`,
-    description: `Master ${batchName} with authentic chapterwise previous year questions, instant KaTeX formula solutions, and custom test simulation on Wegenz.`,
+    title: `${batchName} PYQs & Chapterwise Practice | Wegenz Infinite Practice`,
+    description: `Free authentic previous year questions (PYQs) and chapterwise practice simulator for ${batchName}. Practise with real exam timers, instant KaTeX solutions, and video explanations on Wegenz.`,
     canonical: `/practice/${batchId}`,
     ogImage: "/wegenz-wordmark.jpg",
   });

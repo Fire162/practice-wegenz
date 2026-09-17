@@ -7,17 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Removed
-* Uninstalled `dashjs` video player dependency, removing 860 KiB of unused player code.
+### Added
+* Schema.org `FAQPage` JSON-LD structured data in `index.html` for Google search rich snippet eligibility.
+* Crawlable semantic `<noscript>` fallback HTML inside `#root` featuring structured headings and direct internal links to all JEE and NEET practice tracks.
+* Dedicated semantic FAQ knowledge base on `home.tsx` targeting student search queries for chapterwise JEE and NEET practice.
 
 ### Changed
+* Refined product positioning across `index.html` and `src/pages/home.tsx` to focus on **Sample Questions, Infinite Practice Drills, Challenge Codes, and Timed CBT Mock Tests** (distinct from the dedicated PYQ archive on `pyqs.wegenz.in`).
+* Optimized page titles, `<h1>` headings, and meta descriptions across `index.html`, `home.tsx`, and `practice.tsx` to align with high-intent search queries (`JEE PYQs`, `JEE Practice Engine`, `Sample Questions`, `Chapterwise PYQs`).
+* Updated `public/sitemap.xml` timestamps to `2026-09-17`.
 * Statically imported `Home` component in `App.tsx` to eliminate initial loading spinner waterfall on root path.
 * Replaced Dash video player with a lightweight stream link fallback in `practice.tsx`.
 * Removed redundant KaTeX CSS preload link from `index.html`.
 * Targeted modern `es2022` JavaScript in `vite.config.ts`.
 
 ### Fixed
+* Removed static root canonical tag (`<link rel="canonical" href="https://wegenz.in/" />`) from `index.html` to prevent crawlers from misattributing `/practice/*` subpages prior to client hydration.
+* Initiated Google Search Console validation for queued practice routes (`11th_JEE`, `12th_JEE`, `12th_NEET`).
 * Resolved empty solution evaluation and zero-score fallback when submitting tests started from saved bookmarks or shared test codes ([#3](https://github.com/Fire162/practice-wegenz/pull/3)).
+
+### Removed
+* Uninstalled `dashjs` video player dependency, removing 860 KiB of unused player code.
 
 ### Added
 * Route-level code-splitting with `React.lazy()` and `Suspense`, dropping initial landing page bundle size from ~814 kB to ~241 kB total (~9.2 kB homepage chunk, ~70% reduction) ([#10](https://github.com/Fire162/practice-wegenz/pull/10)).
