@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-09-19 23:25 IST
+
+### Fixed
+* Fixed horizontal frame overflows and page blowouts across mobile (320px–480px) and tablet screens ([#11](https://github.com/Fire162/practice-wegenz/issues/11)).
+* Resolved 193px selection page grid blowout by constraining `<section className="grid ...">` with `grid-cols-1 w-full min-w-0` and enforcing `min-w-0 w-full` on child cards.
+* Resolved 430px QuestionRoom blowout on mobile screens by making card headers and action bars wrap responsively on small viewports.
+* Added horizontal swipe scrolling (`overflow-x: auto`) for multi-column KaTeX array and match tables (`.katex:has(.mtable)`, `.mtable`).
+* Added global viewport overflow protection (`html, body, #root { max-width: 100vw; overflow-x: clip; }`).
+
 ## [Unreleased]
 
 ### Added
