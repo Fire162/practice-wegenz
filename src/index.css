@@ -12,6 +12,11 @@
   color-scheme: light;
 }
 
+html, body, #root {
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
 .dark {
   color-scheme: dark;
 }
@@ -40,6 +45,28 @@
   overflow-x: auto;
   overflow-y: hidden;
   padding: 0.25em 0;
+}
+
+.practice-html {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.practice-html .katex,
+.practice-html .katex-display {
+  max-width: 100%;
+}
+
+.practice-html .katex:has(.mtable),
+.practice-html .mtable {
+  display: inline-block !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  vertical-align: middle;
 }
 
 /* Smooth custom scrollbars */

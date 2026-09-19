@@ -828,9 +828,9 @@ function SelectionPanel({
       </section>
 
       {/* Step 2 & Aside Configuration Section */}
-      <section className="grid gap-5 lg:grid-cols-[1fr_310px]">
+      <section className="grid grid-cols-1 w-full min-w-0 gap-5 lg:grid-cols-[1fr_310px]">
         {/* Step 2 / Pick Chapters */}
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-7">
+        <div className="min-w-0 w-full rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-7">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-indigo-600 dark:text-indigo-400">
@@ -975,7 +975,7 @@ function SelectionPanel({
         </div>
 
         {/* Aside Configuration Sidebar */}
-        <aside className="sticky top-6 flex flex-col self-start rounded-3xl border border-indigo-100 dark:border-slate-800 bg-indigo-50/70 dark:bg-slate-900/90 p-5 sm:p-6">
+        <aside className="min-w-0 w-full sticky top-6 flex flex-col self-start rounded-3xl border border-indigo-100 dark:border-slate-800 bg-indigo-50/70 dark:bg-slate-900/90 p-5 sm:p-6">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white">
             <Sparkles className="h-5 w-5" />
           </span>
@@ -2269,10 +2269,10 @@ function QuestionRoom({
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="mx-auto max-w-4xl"
+      className="mx-auto w-full min-w-0 max-w-4xl"
       data-testid="panel-practice-question"
     >
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <button
             type="button"
@@ -2335,7 +2335,7 @@ function QuestionRoom({
       </div>
 
       {/* In-Room Question Navigation Strip */}
-      <div className="mb-5 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+      <div className="mb-5 flex w-full min-w-0 max-w-full items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         {session.questions.map((q, qIdx) => {
           const isCurrent = qIdx === index;
           const isAnswered = answers[q.questionId] && answers[q.questionId].status === "ATTEMPTED";
@@ -2402,10 +2402,10 @@ function QuestionRoom({
           initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -10 }}
-          className="practice-question-canvas rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm sm:p-8"
+          className="practice-question-canvas w-full min-w-0 max-w-full overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm sm:p-8"
         >
-          <div className="mb-6 flex items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               <span className="truncate text-xs font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
                 {question.chapterName || "Practice question"}
               </span>
@@ -2427,7 +2427,7 @@ function QuestionRoom({
             </div>
 
             {/* Bookmark & Question Timer at top corner right side */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
               <button
                 type="button"
                 data-testid="button-bookmark-question"
