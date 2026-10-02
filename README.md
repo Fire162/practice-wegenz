@@ -31,10 +31,10 @@
 
 ## 📖 Overview
 
-**Wegenz Infinite Practice** is a dedicated, zero-distraction test and practice platform designed specifically for competitive exam preparation (JEE Main, JEE Advanced, and NEET). Powered by a comprehensive curated archive of over **170,000+ past year questions (PYQs)** from national entrance examinations, it provides unlimited custom test generation, granular subject/chapter filtering, formula-perfect KaTeX typesetting, dual practice modes (Exam & Quiz), persistent bookmarking, and comprehensive performance analytics.
+**Wegenz Infinite Practice** is a mock test and practice platform for competitive exams (JEE Main, JEE Advanced, and NEET). Built on an archive of over **170,000+ past year questions (PYQs)**, it supports custom test generation, chapter filtering, KaTeX math typesetting, Exam and Quiz modes, bookmarks, and performance analytics.
 
 > [!TIP]
-> Built for serious aspirants with a distraction-free, zero-latency interface — featuring authentic CBT exam simulation, keyboard shortcuts, formula-perfect KaTeX typesetting, dark mode support, and instant step-by-step video solutions.
+> Features include CBT exam simulation, keyboard navigation, KaTeX math rendering, dark mode, and video solutions.
 
 ---
 
